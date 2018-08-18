@@ -187,6 +187,10 @@
             },
             getFile: {
                 type: String
+            },
+            random: {
+                type: Boolean,
+                default: true
             }
         },
         data() {
@@ -340,7 +344,11 @@
                 });
             },
             beforeUpload(file) {
-                this.headers.key = this.parentFolder.path + '/' + file.name;
+                if (this.random) {
+                    this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
+                } else {
+                    this.headers.key = this.parentFolder.path + '/' + file.name;
+                }
             },
             checkPolicy() {
                 if (localStorage.getItem('policy')) {

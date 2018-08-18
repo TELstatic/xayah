@@ -72,7 +72,9 @@
  | deleteFile | string | true     | null | 删除文件地址|
  | checkFile  | string | true     | null | 检查文件唯一性地址|
  | getFile    | string | true     | null | 获取文件及目录  |
- 
+ | random    | bool | true     | null | 文件名随机生成  |
+
+
 <div id="events"></div>
 ### [事件](#events)
  
