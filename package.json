@@ -1,16 +1,35 @@
 {
   "name": "xayah",
   "description": "A Vue.js project",
-  "version": "1.0.0",
+  "version": "1.0.9",
   "author": "TELstatic <telstatic@gmail.com>",
   "license": "MIT",
-  "private": true,
+  "private": false,
+  "keywords": [
+    "Oss",
+    "Upload",
+    "iview",
+    "vue"
+  ],
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "dist/xayah.min.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
-    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
+    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules",
+    "prod": "cross-env NODE_ENV=production webpack --progress --hide-modules --config=webpack.config.prod.js"
   },
   "dependencies": {
-    "vue": "^2.5.11"
+    "vue": "^2.5.16",
+    "iview": "^3.0.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.22.1",
+    "axios": "^0.17"
   },
   "browserslist": [
     "> 1%",
