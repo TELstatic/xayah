@@ -74,7 +74,9 @@
  
  
  ### [事件](#events)
+ 
  | name       | return |memo  |   
+ | --- | -----| ------|
  | callback   | 形如:\[{url:'//demo.oss.com/demo.jpg'}]  | 返回选中的图片| 
  
  ### 使用说明
