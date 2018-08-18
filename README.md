@@ -42,7 +42,7 @@
                 return {
                     images: [
                         {
-                            url: '//al8lshop.oss-cn-shanghai.aliyuncs.com/Images/Shop/lejRej/default/8.jpg'
+                            url: ''
                         }
                     ]
                 }
