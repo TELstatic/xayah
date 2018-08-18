@@ -428,11 +428,8 @@
                     files = files.slice(0, this.max);
                 }
 
-                this.debugthis.debug('选中图片列表:', files)
-
                 this.$emit('input', files);
                 this.$emit('callback', files);
-
 
                 this.visable = false;
             },
