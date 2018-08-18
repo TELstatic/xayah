@@ -7,10 +7,11 @@
 * [属性](#props)
 * [事件](#events)
 
+<div id="installation"></div>
 ### [安装](#installation)
-    
     npm install xayah
 
+<div id="usage"></div>
 ### [使用](#usage)
     
     app.js
@@ -56,7 +57,7 @@
     </script>
  
  
- 
+<div id="props"></div>
 ### [属性](#props)
 
  | name       | type   |required  |default|memo  |
@@ -72,14 +73,14 @@
  | checkFile  | string | true     | null | 检查文件唯一性地址|
  | getFile    | string | true     | null | 获取文件及目录  |
  
- 
- ### [事件](#events)
+<div id="events"></div>
+### [事件](#events)
  
  | name       | return |memo  |   
- | --- | -----| ------|
- | callback   | 形如:\[{url:'//demo.oss.com/demo.jpg'}]  | 返回选中的图片| 
+ | --- | ----- | ------|
+ | callback   | 形如:\[\{url:'//demo.oss.com/demo.jpg'\}\]  | 返回选中的图片| 
  
- ### 使用说明
+### 使用说明
 
 配置ID说明
 >用途:富文本编辑器插入图片       
@@ -117,7 +118,7 @@
                            content:null,
                            images: [
                                {
-                                   url: '//al8lshop.oss-cn-shanghai.aliyuncs.com/Images/Shop/lejRej/default/8.jpg'
+                                   url: ''
                                }
                            ]
                        }
@@ -143,7 +144,9 @@
                }
            </script> 
     
-    配套后台 
+### 配套后台
+  
+  https://github.com/TELstatic/rakan
 
 ### 开发进度
 
