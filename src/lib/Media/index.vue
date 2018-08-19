@@ -25,13 +25,17 @@
                 @on-cancel="visable =false">
             <p slot="header">
                 媒体库
+                <Tooltip content="目录双击进入" placement="right">
+                    <Icon type="ios-help-circle-outline"/>
+                </Tooltip>
             </p>
             <Row>
-                <Col span="2">
+                <Col span="24">
                     <Upload
+                            v-if="upload"
                             style="display: inline;"
-                            :format="config.format"
-                            :max-size="config.size"
+                            :format="['jpg','png','jpeg']"
+                            :max-size="size"
                             :data="headers"
                             multiple
                             :on-format-error="handleFormatError"
@@ -41,33 +45,22 @@
                             :on-success="success"
                             :on-remove="remove"
                             :on-error="error"
-                            :action="url">
-                        <Button type="success" size="default" icon="ios-cloud-upload-outline">上传</Button>
+                            :action="upload_url">
+                        <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
                     </Upload>
-                </Col>
-
-                <Col span="2">
-                    <Button icon="ios-home-outline" size="default" @click="handleHome">
+                    <Button icon="ios-home-outline" @click="handleHome" v-if="home">
                         Root
                     </Button>
-                </Col>
-                <Col span="2">
-                    <Button icon="ios-refresh" size="default" @click="handleReload">
+                    <Button icon="ios-refresh" @click="handleReload">
                         刷新
                     </Button>
-                </Col>
-                <Col span="2">
-                    <Button :disabled="deleteStatus" size="default" icon="ios-trash-outline" @click="handleDelete">
+                    <Button :disabled="buttonStatus" icon="ios-trash-outline" @click="handleDelete" v-if="!readonly">
                         删除
                     </Button>
-                </Col>
-                <Col span="2">
-                    <Button :disabled="deleteStatus" size="default" icon="ios-redo-outline" @click="handleReset">
+                    <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset" v-if="!readonly">
                         重置
                     </Button>
-                </Col>
-                <Col span="2">
-                    <Button icon="ios-arrow-round-back" size="default" @click="handleBack">
+                    <Button icon="ios-arrow-round-back" size="default" @click="handleBack" v-if="back">
                         返回
                     </Button>
                 </Col>
@@ -75,14 +68,17 @@
             <Divider/>
             <Row>
                 <Col span="18">
-                    <div class="demo-upload-list1">
-                        <Icon type="ios-add" size="50" style="margin-top: 20%" @click="handleAddFolder"/>
+                    <div class="demo-upload-list1" @click="handleAddFolder" v-if="create">
+                        <Icon type="ios-add" size="60" style="margin-top: 20%"/>
                     </div>
                     <div class="demo-upload-list1" v-for="(item,index) in fileList">
-                        <img :src="url +item.path" @click="handleSelect(index)" v-if="item.size">
-                        <span v-else>
-                            <Icon type="ios-folder-open" size="50" style="margin-top: 20%"
-                                  @click="handleOpenFolder(item)"/>
+                        <img :src="item.url" @click="handleSelect(index)" v-if="item.size">
+                        <span v-else
+                              @click="handleSelect(index)"
+                              @dblclick="handleOpenFolder(item)">
+                            <Icon type="ios-folder-open"
+                                  size="60" style="margin-top: 10%"
+                            />
                             <p style="margin-top: -10%">
                                 {{item.name}}
                             </p>
@@ -93,7 +89,7 @@
                     </div>
                 </Col>
                 <Col span="6">
-                    <Card style="width:300px" v-if="currentFile.path != null">
+                    <Card style="width:300px" v-if="currentFile.url != null">
                         <p slot="title">
                             <Icon type="ios-film-outline"></Icon>
                             附件信息
@@ -101,7 +97,7 @@
                         <ul>
                             <li>
                                 <span>
-                                    <img :src="url +currentFile.path" style="width: 200px;height: 200px;"/>
+                                    <img :src="currentFile.url" style="width: 200px;height: 200px;"/>
                                 </span>
                             </li>
                             <li>
@@ -139,8 +135,8 @@
                     :page-size="50"
                     @on-change="pageChange"
             ></Page>
-            <div slot="footer">
-                <Button type="info" :disabled="insertStatus" size="default" @click="insertImages">插入图片</Button>
+            <div slot="footer" v-if="!readonly">
+                <Button type="info" :disabled="buttonStatus" @click="insertImages">插入图片</Button>
             </div>
         </Modal>
 
@@ -156,11 +152,66 @@
     </div>
 </template>
 <script>
+    let time = null;
+
     export default {
         name: 'xMedia',
         props: {
-            url: {
-                type: String
+            upload: {
+                type: Boolean,
+                default: true     //上传功能
+            },
+            home: {
+                type: Boolean,
+                default: true     //回首页功能
+            },
+            back: {
+                type: Boolean,
+                default: true     //返回上一级
+            },
+            insert: {
+                type: Boolean,
+                default: true     //插入功能
+            },
+            create: {
+                type: Boolean,
+                default: true     //创建目录功能
+            },
+            readonly: {
+                type: Boolean,
+                default: false     //只读功能
+            },
+            id: {
+                type: String,
+                default: null     //dom id
+            },
+            size: {
+                type: Number,
+                default: 5120     //文件大小限制
+            },
+            list_url: {
+                type: String,
+                default: null     //获取文件列表
+            },
+            create_url: {
+                type: String,
+                default: null     //创建目录
+            },
+            policy_url: {
+                type: String,
+                default: null     //获取上传策略地址
+            },
+            upload_url: {
+                type: String,
+                default: null     //上传地址
+            },
+            check_url: {
+                type: String,
+                default: null     //检查文件唯一性
+            },
+            delete_url: {
+                type: String,
+                default: null    //删除文件地址
             },
             value: {
                 type: Array,
@@ -170,24 +221,6 @@
                 type: Number,
                 default: 1
             },
-            policyUrl: {
-                type: String
-            },
-            createDir: {
-                type: String
-            },
-            deleteDir: {
-                type: String
-            },
-            deleteFile: {
-                type: String
-            },
-            checkFile: {
-                type: String
-            },
-            getFile: {
-                type: String
-            },
             random: {
                 type: Boolean,
                 default: true
@@ -195,6 +228,7 @@
         },
         data() {
             return {
+                fullscreen: false,
                 visable: false,
                 visible2: false,
                 fileList: [],
@@ -207,12 +241,6 @@
                 form: {
                     name: null,
                     pid: null
-                },
-                config: {
-                    size: 5120,
-                    format: [
-                        'jpg', 'jpeg', 'png'
-                    ],
                 },
                 currentFolder: null,
                 parentFolder: null,
@@ -238,23 +266,17 @@
             }
         },
         computed: {
-            insertStatus() {
+            buttonStatus() {
                 let res = _.filter(this.fileList, function (o) {
                     return o.checked;
                 }).length;
-
-                return !res;
-            },
-            deleteStatus() {
-                let res = _.filter(this.fileList, function (o) {
-                    return o.checked;
-                }).length;
-
                 return !res;
             }
         },
         mounted() {
-            this.checkPolicy();
+            if (this.policy_url) {
+                this.checkPolicy();
+            }
         },
         methods: {
             openModal() {
@@ -265,20 +287,38 @@
                 let that = this;
 
                 this.clear();
+                if (!this.list_url) {
+                    console.error('请填入获取文件地址 list_url');
+                    return false;
+                }
 
-                axios.get(this.getFile, {
+                axios.get(this.list_url, {
                     params: this.query
                 }).then(function (res) {
                     that.fileList = res.data.children.data;
                     that.query.total = res.data.children.total;
                     that.parentFolder = res.data.parent;
+                    that.form.pid = res.data.parent._id;
                 }).catch(function (error) {
                     console.log(error);
                 });
             },
+            handleOpenFolder(folder) {
+                clearTimeout(time);
+                this.query.pid = folder._id;
+                this.form.pid = folder._id;
+                this.currentFolder = folder;
+                this.getFiles();
+            },
             handleSelect(index) {
-                this.currentFile = this.fileList[index];
-                this.fileList[index]['checked'] = true;
+                console.log(1);
+                clearTimeout(time);  //首先清除计时器
+                time = setTimeout(() => {
+                    if (!this.readonly) {
+                        this.fileList[index]['checked'] = true;
+                    }
+                    this.currentFile = this.fileList[index];
+                }, 300);   //大概时间300ms
             },
             handleRemove(index) {
                 this.fileList[index]['checked'] = false;
@@ -286,15 +326,12 @@
             handleSlice(index) {
                 this.value.splice(index, 1);
             },
-            handleOpenFolder(folder) {
-                this.query.pid = folder._id;
-                this.form.pid = folder._id;
-                this.currentFolder = folder;
-                this.getFiles();
-            },
             handleAddFolder() {
                 let that = this;
-
+                if (!this.create) {
+                    console.error('请允许创建目录');
+                    return false;
+                }
                 this.$Modal.confirm({
                     onOk() {
                         that.addFolder();
@@ -365,7 +402,7 @@
             },
             getPolicy() {
                 let that = this;
-                axios.get(this.policyUrl).then(function (res) {
+                axios.get(this.policy_url).then(function (res) {
                     that.headers.OSSAccessKeyId = res.data.accessid;
                     that.headers.Policy = res.data.policy;
                     that.headers.Signature = res.data.signature;
@@ -406,15 +443,16 @@
             insertImages() {
                 let that = this;
 
+                //过滤目录
                 let items = _.filter(this.fileList, function (o) {
-                    return o.checked;
+                    return o.checked && o.type === "file";
                 });
 
                 let files = [];
 
                 items.forEach(function (current, index) {
                     let obj = {};
-                    obj.url = that.url + items[index]['path'];
+                    obj.url = items[index].url;
 
                     files.push(obj)
                 });
@@ -463,10 +501,14 @@
                     return o.checked;
                 }).flatMap('_id').value();
 
+                if (!this.delete_url) {
+                    console.error('请填入删除文件地址');
+                }
+
                 let that = this;
                 let form = {};
                 form.ids = res;
-                axios.delete(this.deleteFile, {
+                axios.delete(this.delete_url, {
                     form
                 }).then(res => {
                     if (res.data.code === 200) {
@@ -493,7 +535,12 @@
             addFolder() {
                 let that = this;
 
-                axios.post(this.createDir, this.form).then(function (res) {
+                if (!this.create_url) {
+                    console.error('请填入创建目录地址');
+                    return false;
+                }
+
+                axios.post(this.create_url, this.form).then(function (res) {
                     switch (res.data.code) {
                         case 200:
                             that.$Notice.success({

@@ -16,8 +16,8 @@
     
     app.js
     
-    import xayah from 'xayah';
-    vue.use(xayah);
+    import xMedia from 'xayah';
+    vue.use(xMedia);
  
     demo.vue
      
@@ -26,13 +26,7 @@
             <xayah
                 v-model="images"
                 max="5"
-                url=""
-                policyUrl=""
-                createDir=""
-                deleteDir=""
-                deleteFile=""
-                getFile=""
-                checkFile=""
+                ...
             >
             </xayah>
         </div>
@@ -58,6 +52,7 @@
  
  
 <div id="props"></div>
+
 ### [属性](#props)
 
  | name       | type   |required  |default|memo  |
@@ -65,17 +60,23 @@
  | value      | string | false    | []   | 可以使用 v-model 双向绑定数据|
  | max        | int    | false    | 1    | 最大选择数|
  | id         | string | false    | null | 文档DOM ID(隐藏上传组件)|
- | url        | string | true     | null | 上传地址|
- | policyUrl  | string | true     | null | 获取上传策略地址|
- | createDir  | string | true     | null | 创建目录地址|
- | deleteDir  | string | true     | null | 删除目录地址|
- | deleteFile | string | true     | null | 删除文件地址|
- | checkFile  | string | true     | null | 检查文件唯一性地址|
- | getFile    | string | true     | null | 获取文件及目录  |
+ | upload        | string | true     | null | 启用上传功能|
+ | home  | string | true     | null | 启用返回首页功能|
+ | back  | string | true     | null | 启用返回上一层功能|
+ | insert | string | true     | null | 启用插入文件功能|
+ | create  | string | true     | null | 启用创建目录功能|
+ | readonly    | string | true     | null | 只读,不可选中  |
  | random    | bool | true     | null | 文件名随机生成  |
-
+ | size    | bool | true     | null | 文件限制大小(kb)  |
+ | list_url    | bool | true     | null | 获取文件列表地址  |
+ | create_url    | bool | true     | null | 创建目录地址  |
+ | policy_url    | bool | true     | null | 获取上传策略地址  |
+ | upload_url    | bool | true     | null | 上传地址  |
+ | check_url    | bool | true     | null | 检查文件唯一性地址  |
+ | delete_url    | bool | true     | null | 删除文件地址  |
 
 <div id="events"></div>
+
 ### [事件](#events)
  
  | name       | return |memo  |   
@@ -92,17 +93,12 @@
          
         <template>
                <div>
-                   <xayah
+                   <x-media
                        style="display:none;"
                        v-model="[]"
                        max="5"
                        id="editorImage"
-                       url=""
-                       policyUrl=""
-                       createDir=""
-                       deleteDir=""
-                       deleteFile=""
-                       checkFile=""
+                       ...
                        @callback="callback"
                    >
                    </xayah>

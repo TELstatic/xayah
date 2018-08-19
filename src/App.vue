@@ -1,16 +1,12 @@
 <template>
     <div id="app">
         <div>
-
-
             <x-media
-                    size="5"
+                    :size="5120"
                     v-model="images"
-                    :debug="true"
-                    url="//al8lshop.oss-cn-shanghai.aliyuncs.com/"
                     :max="5"
-                    policyUrl=""
-                    createDir=""
+                    upload_url=""
+                    createDir="1"
                     deleteDir=""
                     deleteFile=""
                     checkFile=""
@@ -26,6 +22,18 @@
         name: 'app',
         data() {
             return {
+                upload: true,   //上传功能
+                root: true,  //回首页功能
+                refresh: true, //刷新功能
+                reset: true,//重置功
+                back: true,   //返回功能
+                insert: true,   //插入功能
+                create: true,  //创建目录功能
+                policy: true, //获取上传策略地址
+                readonly: false,  //是否只读
+                max: 1,
+                random: true,
+                id: null,
                 images: [],
                 msg: 'Welcome to Your Vue.js App'
             }
@@ -34,30 +42,5 @@
 </script>
 
 <style>
-    #app {
-        font-family: 'Avenir', Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-align: center;
-        color: #2c3e50;
-        margin-top: 60px;
-    }
 
-    h1, h2 {
-        font-weight: normal;
-    }
-
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    li {
-        display: inline-block;
-        margin: 0 10px;
-    }
-
-    a {
-        color: #42b983;
-    }
 </style>
