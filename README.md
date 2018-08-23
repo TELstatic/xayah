@@ -23,12 +23,12 @@
      
     <template>
         <div>
-            <xayah
+            <x-media
                 v-model="images"
                 max="5"
                 ...
             >
-            </xayah>
+            </x-media>
         </div>
     </template>
     <script>
@@ -101,7 +101,7 @@
                        ...
                        @callback="callback"
                    >
-                   </xayah>
+                   </x-media>
                    
                    <quill-editor
                        v-model="content"
@@ -152,11 +152,11 @@
     - [x] 显示目录及文件
     - [x] 创建目录
     - [ ] 更新目录
-    - [ ] 删除目录
-- [ ] 文件
+    - [x] 删除目录
+- [x] 文件
     - [x] 上传文件
     - [x] 删除文件
-    - [ ] 检查文件唯一
+    - [x] 检查文件唯一
     - [x] 插入文件
  
  

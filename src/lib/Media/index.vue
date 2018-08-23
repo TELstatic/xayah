@@ -9,6 +9,7 @@
         </div>
         <div style="display: inline;">
             <div class="demo-upload-list"
+                 :id="id"
                  @click="openModal"
                  style="display: inline-block;width:58px;">
                 <div style="width: 58px;height:58px;line-height: 58px;">
@@ -19,7 +20,7 @@
         <Modal
                 v-model="visable"
                 width="1200"
-                :transfer="false"
+                :transfer="true"
                 title="媒体库"
                 @on-ok="visable =false"
                 @on-cancel="visable =false">
@@ -32,6 +33,7 @@
             <Row>
                 <Col span="24">
                     <Upload
+                            ref="upload"
                             v-if="upload"
                             style="display: inline;"
                             :format="['jpg','png','jpeg']"
@@ -54,9 +56,13 @@
                     <Button icon="ios-refresh" @click="handleReload">
                         刷新
                     </Button>
-                    <Button :disabled="buttonStatus" icon="ios-trash-outline" @click="handleDelete" v-if="!readonly">
-                        删除
-                    </Button>
+                    <Poptip
+                            confirm
+                            title="此操作将删除所选文件和目录,确定继续?"
+                            @on-ok="handleDelete"
+                            @on-cancel="">
+                        <Button :disabled="buttonStatus" icon="ios-trash-outline" v-if="!readonly">删除</Button>
+                    </Poptip>
                     <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset" v-if="!readonly">
                         重置
                     </Button>
@@ -72,7 +78,12 @@
                         <Icon type="ios-add" size="60" style="margin-top: 20%"/>
                     </div>
                     <div class="demo-upload-list1" v-for="(item,index) in fileList">
-                        <img :src="item.url" @click="handleSelect(index)" v-if="item.size">
+                        <span v-if="item.size">
+                            <img :src="formarImage(item.url)" @click="handleSelect(index)">
+                            <p style="margin-top: -50%">
+                                {{item.name}}
+                            </p>
+                        </span>
                         <span v-else
                               @click="handleSelect(index)"
                               @dblclick="handleOpenFolder(item)">
@@ -131,12 +142,16 @@
             <Page
                     :total="query.total"
                     show-total
+                    show-elevator
+                    show-sizer
                     :transfer="false"
                     :page-size="50"
+                    :page-size-opts="pageSizeOpts"
                     @on-change="pageChange"
+                    @on-page-size-change="pageSizeChange"
             ></Page>
             <div slot="footer" v-if="!readonly">
-                <Button type="info" :disabled="buttonStatus" @click="insertImages">插入图片</Button>
+                <Button type="info" :disabled="insertStatus" @click="insertImages">插入图片</Button>
             </div>
         </Modal>
 
@@ -191,27 +206,27 @@
             },
             list_url: {
                 type: String,
-                default: null     //获取文件列表
+                required: true     //获取文件列表
             },
             create_url: {
                 type: String,
-                default: null     //创建目录
+                required: true     //创建目录
             },
             policy_url: {
                 type: String,
-                default: null     //获取上传策略地址
+                required: true    //获取上传策略地址
             },
             upload_url: {
                 type: String,
-                default: null     //上传地址
+                required: true    //上传地址
             },
             check_url: {
                 type: String,
-                default: null     //检查文件唯一性
+                required: true    //检查文件唯一性
             },
             delete_url: {
                 type: String,
-                default: null    //删除文件地址
+                required: true   //删除文件地址
             },
             value: {
                 type: Array,
@@ -242,6 +257,9 @@
                     name: null,
                     pid: null
                 },
+                pageSizeOpts: [
+                    50, 100, 150
+                ],
                 currentFolder: null,
                 parentFolder: null,
                 currentFile: {
@@ -262,13 +280,21 @@
                     success_action_status: 200,
                     key: null,
                     callback: null
-                }
+                },
+                uploadFile: [],
+                order: 0
             }
         },
         computed: {
             buttonStatus() {
                 let res = _.filter(this.fileList, function (o) {
                     return o.checked;
+                }).length;
+                return !res;
+            },
+            insertStatus() {
+                let res = _.filter(this.fileList, function (o) {
+                    return o.checked && o.type === "file";
                 }).length;
                 return !res;
             }
@@ -279,6 +305,9 @@
             }
         },
         methods: {
+            formarImage(url) {
+                return url + '?x-oss-process=style/thumb';
+            },
             openModal() {
                 this.visable = true;
                 this.getFiles();
@@ -287,10 +316,6 @@
                 let that = this;
 
                 this.clear();
-                if (!this.list_url) {
-                    console.error('请填入获取文件地址 list_url');
-                    return false;
-                }
 
                 axios.get(this.list_url, {
                     params: this.query
@@ -300,7 +325,7 @@
                     that.parentFolder = res.data.parent;
                     that.form.pid = res.data.parent._id;
                 }).catch(function (error) {
-                    console.log(error);
+                    console.error(error);
                 });
             },
             handleOpenFolder(folder) {
@@ -311,14 +336,14 @@
                 this.getFiles();
             },
             handleSelect(index) {
-                console.log(1);
-                clearTimeout(time);  //首先清除计时器
+                clearTimeout(time);
                 time = setTimeout(() => {
                     if (!this.readonly) {
                         this.fileList[index]['checked'] = true;
+                        this.fileList[index]['order'] = ++this.order
                     }
                     this.currentFile = this.fileList[index];
-                }, 300);   //大概时间300ms
+                }, 300);
             },
             handleRemove(index) {
                 this.fileList[index]['checked'] = false;
@@ -328,10 +353,7 @@
             },
             handleAddFolder() {
                 let that = this;
-                if (!this.create) {
-                    console.error('请允许创建目录');
-                    return false;
-                }
+
                 this.$Modal.confirm({
                     onOk() {
                         that.addFolder();
@@ -353,7 +375,6 @@
                 });
             },
             clear() {
-
                 this.form.name = null;
                 this.currentFile = {
                     path: null,
@@ -377,15 +398,40 @@
             handleMaxSize() {
                 this.$Notice.warnings({
                     title: '文件大小错误',
-                    desc: '请上传 ' + this.config.size / 1024 + 'M 内文件'
+                    desc: '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件'
                 });
             },
             beforeUpload(file) {
                 if (this.random) {
                     this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
                 } else {
-                    this.headers.key = this.parentFolder.path + '/' + file.name;
+                    this.checkFile(file);
+                    return false;
                 }
+            },
+            clean() {
+                this.uploadFile = [];
+            },
+            checkFile(file) {
+                let form = {};
+                form.path = this.parentFolder.path + '/' + file.name;
+
+                axios.post(this.check_url, form).then(res => {
+                    if (res.data.status === 200) {
+                        this.uploadFiles(file);
+                    } else {
+                        this.$Notice.warning({
+                            title: res.data.msg,
+                            desc: '请修改' + file.name + '文件名'
+                        });
+                    }
+                }).catch(error => {
+                    console.error(error)
+                });
+            },
+            uploadFiles(file) {
+                this.headers.key = this.parentFolder.path + '/' + file.name;
+                this.$refs.upload.post(file);
             },
             checkPolicy() {
                 if (localStorage.getItem('policy')) {
@@ -414,14 +460,12 @@
 
                     localStorage.setItem('policy', JSON.stringify(policy));
                 }).catch(function (error) {
-                    console.log(error);
+                    console.error(error);
                 });
             },
-            remove() {
-
-            },
             success(res) {
-                if (res.code === 200) {
+                console.info(res);
+                if (res.status === 200) {
                     this.$Notice.success({
                         title: '上传成功',
                         desc: ' '
@@ -434,7 +478,12 @@
                     });
                 }
             },
+            remove() {
+
+            },
             error(err) {
+                console.error(err);
+
                 this.$Notice.error({
                     title: '上传失败',
                     desc: '请联系管理员'
@@ -447,6 +496,8 @@
                 let items = _.filter(this.fileList, function (o) {
                     return o.checked && o.type === "file";
                 });
+
+                items = _.orderBy(items, ['order'], ['asc']);
 
                 let files = [];
 
@@ -468,11 +519,16 @@
 
                 this.$emit('input', files);
                 this.$emit('callback', files);
-
+                this.order = 0;
                 this.visable = false;
             },
             pageChange(val) {
                 this.query.page = val;
+                this.getFiles();
+            },
+            pageSizeChange(val) {
+                this.query.page = 1;
+                this.query.per_page = val;
                 this.getFiles();
             },
             handleBack() {
@@ -481,6 +537,7 @@
                 }
 
                 this.query.pid = this.parentFolder.pid;
+                this.query.page = 1;
 
                 this.getFiles();
             },
@@ -501,17 +558,12 @@
                     return o.checked;
                 }).flatMap('_id').value();
 
-                if (!this.delete_url) {
-                    console.error('请填入删除文件地址');
-                }
-
                 let that = this;
                 let form = {};
                 form.ids = res;
-                axios.delete(this.delete_url, {
-                    form
-                }).then(res => {
-                    if (res.data.code === 200) {
+
+                axios.delete(this.delete_url, {data: form}).then(res => {
+                    if (res.data.status === 200) {
                         that.$Notice.success({
                             title: '删除成功',
                             desc: ' '
@@ -520,25 +572,21 @@
                     } else {
                         that.$Notice.error({
                             title: '删除失败',
-                            desc: '请重试'
+                            desc: res.data.msg
                         });
                     }
                 }).catch(error => {
-                    console.log(error);
+                    console.error(error);
                 });
             },
             handleReset() {
                 _.map(this.fileList, function (o) {
                     o.checked = false;
+                    o.order = 0;
                 });
             },
             addFolder() {
                 let that = this;
-
-                if (!this.create_url) {
-                    console.error('请填入创建目录地址');
-                    return false;
-                }
 
                 axios.post(this.create_url, this.form).then(function (res) {
                     switch (res.data.code) {
@@ -570,7 +618,7 @@
                             break;
                     }
                 }).catch(function (error) {
-                    console.log(error);
+                    console.error(error);
                 });
             }
         }
