@@ -589,33 +589,17 @@
                 let that = this;
 
                 axios.post(this.create_url, this.form).then(function (res) {
-                    switch (res.data.code) {
-                        case 200:
-                            that.$Notice.success({
-                                title: '创建成功',
-                                desc: ' '
-                            });
-                            that.getFiles();
-                            break;
-                        case 201:
-                            that.$Notice.warning({
-                                title: '创建失败',
-                                desc: '目录已存在'
-                            });
-                            break;
-                        case 202:
-                            that.$Notice.warning({
-                                title: '创建失败',
-                                desc: '同一目录最多创建10个子目录'
-                            });
-                            break;
-                        case 500:
-                        default:
-                            that.$Notice.error({
-                                title: '创建失败',
-                                desc: '请重试'
-                            });
-                            break;
+                    if(res.data.status===200){
+                        that.$Notice.success({
+                            title: '目录创建成功',
+                            desc: ' '
+                        });
+                        that.getFiles();
+                    }else{
+                        that.$Notice.warning({
+                            title: '目录创建失败',
+                            desc: res.data.msg
+                        });
                     }
                 }).catch(function (error) {
                     console.error(error);
