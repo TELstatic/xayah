@@ -228,6 +228,10 @@
                 type: String,
                 required: true   //删除文件地址
             },
+            callback_url:{
+                type:String,
+                default:null
+            },
             value: {
                 type: Array,
                 default: []
@@ -452,7 +456,10 @@
                     that.headers.OSSAccessKeyId = res.data.accessid;
                     that.headers.Policy = res.data.policy;
                     that.headers.Signature = res.data.signature;
-                    that.headers.callback = res.data.callback;
+                    try{
+                        that.headers.callback = res.data.callback;
+                    }catch (e) {
+                    }
 
                     let policy = {};
                     policy.value = that.headers;
@@ -463,19 +470,43 @@
                     console.error(error);
                 });
             },
-            success(res) {
+            success(res,file,fileList) {
                 console.info(res);
-                if (res.status === 200) {
-                    this.$Notice.success({
-                        title: '上传成功',
-                        desc: ' '
+
+                let that=this;
+                if(!this.callback_url){
+                    let form={};
+                    form.filename=this.parentFolder.path + '/' + file.name;
+                    form.size=file.size;
+
+                    axios.post(this.callback_url,form).then(res=>{
+                        if(res.data.status===200){
+                            that.$Notice.success({
+                                title:'回调成功',
+                                desc:'client'
+                            });
+                        }else{
+                            that.$Notice.error({
+                                title:'回调失败',
+                                desc:'client'
+                            });
+                        }
+                    }).catch(error=>{
+                        console.error(error);
                     });
-                    this.getFiles();
-                } else {
-                    this.$Notice.error({
-                        title: '回调失败',
-                        desc: '请联系管理员'
-                    });
+                }else{
+                    if (res.status === 200) {
+                        this.$Notice.success({
+                            title: '上传成功',
+                            desc: 'server'
+                        });
+                        this.getFiles();
+                    } else {
+                        this.$Notice.error({
+                            title: '回调失败',
+                            desc: '请联系管理员'
+                        });
+                    }
                 }
             },
             remove() {
