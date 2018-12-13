@@ -3,17 +3,17 @@
         <div class="demo-upload-list" v-for="(item,index) in value">
             <img :src="item.url">
             <div class="demo-upload-list-cover">
-                <Icon type="ios-eye-outline" @click.native="handleView(item)"></Icon>
+                <Icon type="ios-eye-outline" @click.native="handleReview(item)"></Icon>
                 <Icon type="ios-trash-outline" @click.native="handleSlice(index)"></Icon>
             </div>
         </div>
         <div style="display: inline;">
             <div class="demo-upload-list"
-                 :id="id"
-                 @click="openModal"
+                 :id="config.id"
+                 @click="handleOpen"
                  style="display: inline-block;width:58px;">
                 <div style="width: 58px;height:58px;line-height: 58px;">
-                    <Icon type="ios-camera-outline" size="30"/>
+                    <Icon type="ios-camera-outline" size="30"></Icon>
                 </div>
             </div>
         </div>
@@ -22,22 +22,21 @@
                 width="1200"
                 :transfer="true"
                 title="媒体库"
-                @on-ok="visable =false"
-                @on-cancel="visable =false">
+                @on-ok=""
+                @on-cancel="">
             <p slot="header">
                 媒体库
-                <Tooltip content="目录双击进入" placement="right">
-                    <Icon type="ios-help-circle-outline"/>
+                <Tooltip content="目录双击进入或按住 Ctrl 单击进入" placement="right">
+                    <Icon type="ios-help-circle-outline"></Icon>
                 </Tooltip>
             </p>
             <Row>
                 <Col span="24">
                     <Upload
                             ref="upload"
-                            v-if="upload"
                             style="display: inline;"
-                            :format="['jpg','png','jpeg']"
-                            :max-size="size"
+                            :format="config.format"
+                            :max-size="config.size"
                             :data="headers"
                             multiple
                             :on-format-error="handleFormatError"
@@ -47,10 +46,10 @@
                             :on-success="success"
                             :on-remove="remove"
                             :on-error="error"
-                            :action="upload_url">
+                            :action="urls.upload">
                         <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
                     </Upload>
-                    <Button icon="ios-home-outline" @click="handleHome" v-if="home">
+                    <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
                         Root
                     </Button>
                     <Button icon="ios-refresh" @click="handleReload">
@@ -61,35 +60,38 @@
                             title="此操作将删除所选文件和目录,确定继续?"
                             @on-ok="handleDelete"
                             @on-cancel="">
-                        <Button :disabled="buttonStatus" icon="ios-trash-outline" v-if="!readonly">删除</Button>
+                        <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
                     </Poptip>
-                    <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset" v-if="!readonly">
+                    <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
                         重置
                     </Button>
-                    <Button icon="ios-arrow-round-back" size="default" @click="handleBack" v-if="back">
+                    <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
+                            :disabled="!parentFolder.pid">
                         返回
                     </Button>
                 </Col>
             </Row>
             <Divider/>
             <Row>
-                <Col span="18">
-                    <div class="demo-upload-list1" @click="handleAddFolder" v-if="create">
-                        <Icon type="ios-add" size="60" style="margin-top: 20%"/>
+                <Col span="18" style="min-height: 500px;">
+                    <div class="demo-upload-list1" @click="handleAddFolder">
+                        <Icon type="ios-add" size="60" style="margin-top: 20%"></Icon>
                     </div>
                     <div class="demo-upload-list1" v-for="(item,index) in fileList">
                         <span v-if="item.size">
-                            <img :src="formarImage(item.url)" @click="handleSelect(index)">
+                            <img :src="formatImage(item.url)"
+                                 @click="handleSelect(index)"/>
                             <p style="margin-top: -50%">
                                 {{item.name}}
                             </p>
                         </span>
                         <span v-else
                               @click="handleSelect(index)"
+                              @click.ctrl="handleOpenFolder(item)"
                               @dblclick="handleOpenFolder(item)">
                             <Icon type="ios-folder-open"
                                   size="60" style="margin-top: 10%"
-                            />
+                            ></Icon>
                             <p style="margin-top: -10%">
                                 {{item.name}}
                             </p>
@@ -100,7 +102,7 @@
                     </div>
                 </Col>
                 <Col span="6">
-                    <Card style="width:300px" v-if="currentFile.url != null">
+                    <Card style="width:300px;" v-if="!!currentFile.url">
                         <p slot="title">
                             <Icon type="ios-film-outline"></Icon>
                             附件信息
@@ -114,20 +116,20 @@
                             <li>
                                 <a href="javascript:;">名称</a>
                                 <span style="white-space:nowrap;overflow: hidden;text-overflow:ellipsis;word-break: break-all">
-                                            {{currentFile.name}}
-                                        </span>
+                                    {{currentFile.name}}
+                                </span>
                             </li>
                             <li>
                                 <a href="javascript:;">日期</a>
                                 <span>
-                                            {{currentFile.created_at}}
-                                        </span>
+                                    {{currentFile.created_at}}
+                                </span>
                             </li>
                             <li>
                                 <a href="javascript:;">大小</a>
                                 <span>
-                                            {{currentFile.size}} KB
-                                        </span>
+                                    {{currentFile.size}} KB
+                                </span>
                             </li>
                             <li>
                                 <a href="javascript:;">尺寸</a>
@@ -150,7 +152,7 @@
                     @on-change="pageChange"
                     @on-page-size-change="pageSizeChange"
             ></Page>
-            <div slot="footer" v-if="!readonly">
+            <div slot="footer">
                 <Button type="info" :disabled="insertStatus" @click="insertImages">插入图片</Button>
             </div>
         </Modal>
@@ -159,10 +161,27 @@
                 title="图片预览"
                 v-model="visible2"
                 :transfer="false"
-                @on-ok="visible2 = false"
-                @on-cancel="visible2 = false"
-        >
-            <img :src="currentImage.url" v-if="visible2" style="width: 100%">
+                @on-ok="handleCloseReview"
+                @on-cancel="handleCloseReview">
+            <img :src="currentImage.url" style="width: 100%"/>
+        </Modal>
+
+        <Modal
+                title="创建目录"
+                v-model="visible3"
+                :transfer="true"
+                @on-ok="handleCloseFolder"
+                @on-cancel="handleCloseFolder">
+            <Form :model="form" :rules="rules" ref="form">
+                <FormItem prop="name">
+                    <Input type="text" v-model="form.name" autofocus clearable placeholder="请输入目录名称"></Input>
+                </FormItem>
+            </Form>
+            <div slot="footer">
+                <Button type="primary" @click="handleCreateFolder">
+                    创建
+                </Button>
+            </div>
         </Modal>
     </div>
 </template>
@@ -170,86 +189,43 @@
     let time = null;
 
     export default {
-        name: 'xMedia',
+        name: 'xayah',
         props: {
-            upload: {
-                type: Boolean,
-                default: true     //上传功能
+            urls: {
+                type: Object,
+                default: {
+                    index: '',    //获取文件地址
+                    upload: '',   //上传地址
+                    create: '',   //创建目录地址
+                    check: '',    //检查文件唯一
+                    policy: '',   //获取上传策略地址
+                    delete: '',   //删除文件或目录地址
+                    return: '',   //本地回调地址
+                }
             },
-            home: {
-                type: Boolean,
-                default: true     //回首页功能
-            },
-            back: {
-                type: Boolean,
-                default: true     //返回上一级
-            },
-            insert: {
-                type: Boolean,
-                default: true     //插入功能
-            },
-            create: {
-                type: Boolean,
-                default: true     //创建目录功能
-            },
-            readonly: {
-                type: Boolean,
-                default: false     //只读功能
-            },
-            id: {
-                type: String,
-                default: null     //dom id
-            },
-            size: {
-                type: Number,
-                default: 5120     //文件大小限制
-            },
-            list_url: {
-                type: String,
-                required: true     //获取文件列表
-            },
-            create_url: {
-                type: String,
-                required: true     //创建目录
-            },
-            policy_url: {
-                type: String,
-                required: true    //获取上传策略地址
-            },
-            upload_url: {
-                type: String,
-                required: true    //上传地址
-            },
-            check_url: {
-                type: String,
-                required: true    //检查文件唯一性
-            },
-            delete_url: {
-                type: String,
-                required: true   //删除文件地址
-            },
-            callback_url:{
-                type:String,
-                default:null
+            config: {
+                type: Object,
+                default: {
+                    id: null,       //dom ID
+                    random: false,  //是否启用随机文件名
+                    size: 0,        //上传大小限制
+                    max: 1,         //插入图片限制
+                    format: [       //上传类型限制
+                        'jpg', 'png', 'jpeg'
+                    ],
+                    style:''
+                }
             },
             value: {
                 type: Array,
                 default: []
-            },
-            max: {
-                type: Number,
-                default: 1
-            },
-            random: {
-                type: Boolean,
-                default: true
             }
         },
         data() {
             return {
-                fullscreen: false,
                 visable: false,
                 visible2: false,
+                visible3: false,
                 fileList: [],
                 query: {
                     pid: null,
@@ -261,18 +237,35 @@
                     name: null,
                     pid: null
                 },
+                rules: {
+                    name: [
+                        {
+                            required: true,
+                            trigger: 'blur',
+                            type: 'string',
+                            message: '目录名必须',
+                        },
+                        {
+                            type: 'string',
+                            pattern: /^[\u4E00-\u9FA5A-Za-z0-9_]+$/,
+                            message: '目录名非法',
+                        },
+                    ]
+                },
                 pageSizeOpts: [
                     50, 100, 150
                 ],
                 currentFolder: null,
-                parentFolder: null,
+                parentFolder: {
+                    pid: null
+                },
                 currentFile: {
                     path: null,
                     name: null,
                     size: 0,
                     width: 0,
                     height: 0,
-                    created_at: ''
+                    created_at: null
                 },
                 currentImage: {
                     url: null
@@ -304,15 +297,15 @@
             }
         },
         mounted() {
-            if (this.policy_url) {
+            if (this.urls.policy) {
                 this.checkPolicy();
             }
         },
         methods: {
-            formarImage(url) {
-                return url + '?x-oss-process=style/thumb';
+            formatImage(url) {
+                return url + this.config.style;
             },
-            openModal() {
+            handleOpen() {
                 this.visable = true;
                 this.getFiles();
             },
@@ -321,9 +314,7 @@
 
                 this.clear();
 
-                axios.get(this.list_url, {
-                    params: this.query
-                }).then(function (res) {
+                axios.get(this.urls.index, {params: this.query}).then(function (res) {
                     that.fileList = res.data.children.data;
                     that.query.total = res.data.children.total;
                     that.parentFolder = res.data.parent;
@@ -342,10 +333,8 @@
             handleSelect(index) {
                 clearTimeout(time);
                 time = setTimeout(() => {
-                    if (!this.readonly) {
-                        this.fileList[index]['checked'] = true;
-                        this.fileList[index]['order'] = ++this.order
-                    }
+                    this.fileList[index]['checked'] = true;
+                    this.fileList[index]['order'] = ++this.order;
                     this.currentFile = this.fileList[index];
                 }, 300);
             },
@@ -357,26 +346,7 @@
             },
             handleAddFolder() {
                 let that = this;
-
-                this.$Modal.confirm({
-                    onOk() {
-                        that.addFolder();
-                    },
-                    render: (h) => {
-                        return h('Input', {
-                            props: {
-                                value: this.form.name,
-                                autofocus: true,
-                                placeholder: '请输入目录名称'
-                            },
-                            on: {
-                                input: (val) => {
-                                    this.form.name = val;
-                                }
-                            }
-                        })
-                    }
-                });
+                that.visible3 = true;
             },
             clear() {
                 this.form.name = null;
@@ -386,41 +356,44 @@
                     size: 0,
                     width: 0,
                     height: 0,
-                    created_at: ''
+                    created_at: null
                 }
             },
-            handleView(val) {
+            handleReview(val) {
                 this.visible2 = true;
                 this.currentImage = val;
             },
             handleFormatError() {
-                this.$Notice.warnings({
+                this.$Notice.warning({
                     title: '文件格式错误',
                     desc: '请上传以下格式文件 ' + this.config.format.join('|')
                 });
             },
             handleMaxSize() {
-                this.$Notice.warnings({
+                this.$Notice.warning({
                     title: '文件大小错误',
                     desc: '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件'
                 });
             },
             beforeUpload(file) {
-                if (this.random) {
+                if (this.config.random) {
                     this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
                 } else {
                     this.checkFile(file);
                     return false;
                 }
             },
-            clean() {
-                this.uploadFile = [];
+            handleCloseReview() {
+                this.visible2 = false;
+            },
+            handleCloseFolder() {
+                this.visible3 = false;
             },
             checkFile(file) {
                 let form = {};
                 form.path = this.parentFolder.path + '/' + file.name;
 
-                axios.post(this.check_url, form).then(res => {
+                axios.post(this.urls.check, form).then(res => {
                     if (res.data.status === 200) {
                         this.uploadFiles(file);
                     } else {
@@ -430,7 +403,7 @@
                         });
                     }
                 }).catch(error => {
-                    console.error(error)
+                    console.error(error);
                 });
             },
             uploadFiles(file) {
@@ -438,11 +411,12 @@
                 this.$refs.upload.post(file);
             },
             checkPolicy() {
+                let that = this;
                 if (localStorage.getItem('policy')) {
                     let policy = JSON.parse(localStorage.getItem('policy'));
 
                     if (moment().isBefore(moment(policy.expire_at))) {
-                        this.headers = policy.value;
+                        that.headers = policy.value;
                     } else {
                         this.getPolicy();
                     }
@@ -451,18 +425,17 @@
                 }
             },
             getPolicy() {
-                let that = this;
-                axios.get(this.policy_url).then(function (res) {
-                    that.headers.OSSAccessKeyId = res.data.accessid;
-                    that.headers.Policy = res.data.policy;
-                    that.headers.Signature = res.data.signature;
-                    try{
-                        that.headers.callback = res.data.callback;
-                    }catch (e) {
+                axios.get(this.urls.policy).then(function (res) {
+                    this.headers.OSSAccessKeyId = res.data.accessid;
+                    this.headers.Policy = res.data.policy;
+                    this.headers.Signature = res.data.signature;
+                    try {
+                        this.headers.callback = res.data.callback;
+                    } catch (e) {
                     }
 
                     let policy = {};
-                    policy.value = that.headers;
+                    policy.value = this.headers;
                     policy.expire_at = moment().add(res.data.expire, 's');
 
                     localStorage.setItem('policy', JSON.stringify(policy));
@@ -470,31 +443,31 @@
                     console.error(error);
                 });
             },
-            success(res,file,fileList) {
-                console.info(res);
+            success(res, file, fileList) {
+                console.info(fileList);
 
-                let that=this;
-                if(!this.callback_url){
-                    let form={};
-                    form.filename=this.parentFolder.path + '/' + file.name;
-                    form.size=file.size;
+                let that = this;
+                if (!!this.urls.return) {
+                    let form = {};
+                    form.filename = this.parentFolder.path + '/' + file.name;
+                    form.size = file.size;
 
-                    axios.post(this.callback_url,form).then(res=>{
-                        if(res.data.status===200){
+                    axios.post(this.urls.return, form).then(res => {
+                        if (res.data.status === 200) {
                             that.$Notice.success({
-                                title:'回调成功',
-                                desc:'client'
+                                title: '回调成功',
+                                desc: 'client'
                             });
-                        }else{
+                        } else {
                             that.$Notice.error({
-                                title:'回调失败',
-                                desc:'client'
+                                title: '回调失败',
+                                desc: 'client'
                             });
                         }
-                    }).catch(error=>{
+                    }).catch(error => {
                         console.error(error);
                     });
-                }else{
+                } else {
                     if (res.status === 200) {
                         this.$Notice.success({
                             title: '上传成功',
@@ -521,8 +494,6 @@
                 });
             },
             insertImages() {
-                let that = this;
-
                 //过滤目录
                 let items = _.filter(this.fileList, function (o) {
                     return o.checked && o.type === "file";
@@ -539,19 +510,20 @@
                     files.push(obj)
                 });
 
-                if (files.length > this.max) {
-                    let msg = '图片最多选择' + this.max + '张,多选部分将被舍弃';
+                if (files.length > this.config.max) {
+                    let msg = '图片最多选择' + this.config.max + '张,多选部分将被舍弃';
                     this.$Notice.info({
                         title: '提示',
                         desc: msg
                     });
-                    files = files.slice(0, this.max);
+                    files = files.slice(0, this.config.max);
                 }
 
                 this.$emit('input', files);
                 this.$emit('callback', files);
                 this.order = 0;
                 this.visable = false;
+                this.handleReset();
             },
             pageChange(val) {
                 this.query.page = val;
@@ -563,13 +535,8 @@
                 this.getFiles();
             },
             handleBack() {
-                if (this.parentFolder.pid === 0) {
-                    return false;
-                }
-
                 this.query.pid = this.parentFolder.pid;
                 this.query.page = 1;
-
                 this.getFiles();
             },
             handleHome() {
@@ -589,19 +556,19 @@
                     return o.checked;
                 }).flatMap('_id').value();
 
-                let that = this;
-                let form = {};
-                form.ids = res;
+                let form = {
+                    ids: res
+                };
 
-                axios.delete(this.delete_url, {data: form}).then(res => {
+                axios.delete(this.urls.delete, {data: form}).then(res => {
                     if (res.data.status === 200) {
-                        that.$Notice.success({
+                        this.$Notice.success({
                             title: '删除成功',
                             desc: ' '
                         });
-                        that.getFiles();
+                        this.getFiles();
                     } else {
-                        that.$Notice.error({
+                        this.$Notice.error({
                             title: '删除失败',
                             desc: res.data.msg
                         });
@@ -616,24 +583,37 @@
                     o.order = 0;
                 });
             },
-            addFolder() {
-                let that = this;
-
-                axios.post(this.create_url, this.form).then(function (res) {
-                    if(res.data.status===200){
-                        that.$Notice.success({
-                            title: '目录创建成功',
-                            desc: ' '
+            clean() {
+                this.visible3 = false;
+                this.form.name = null;
+                this.$refs.form.resetFileds();
+            },
+            handleCreateFolder() {
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        axios.post(this.urls.create, this.form).then(function (res) {
+                            if (res.data.status === 200) {
+                                this.$Notice.success({
+                                    title: '目录创建成功',
+                                    desc: ' '
+                                });
+                                this.clean();
+                                this.getFiles();
+                            } else {
+                                this.$Notice.error({
+                                    title: '目录创建失败',
+                                    desc: res.data.msg
+                                });
+                            }
+                        }).catch(function (error) {
+                            console.error(error);
                         });
-                        that.getFiles();
-                    }else{
-                        that.$Notice.warning({
-                            title: '目录创建失败',
-                            desc: res.data.msg
+                    } else {
+                        this.$Notice.warning({
+                            title: '表单输入有误',
+                            desc: '请检查'
                         });
                     }
-                }).catch(function (error) {
-                    console.error(error);
                 });
             }
         }
@@ -658,14 +638,6 @@
         position: relative;
         box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
         margin-right: 4px;
-    }
-
-    .demo-badge {
-        width: 42px;
-        height: 42px;
-        background: #eee;
-        border-radius: 6px;
-        display: inline-block;
     }
 
     .demo-upload-list1 {
@@ -703,16 +675,6 @@
         background: rgba(0, 0, 0, .6);
     }
 
-    .demo-upload-list-cover1 {
-        display: none;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, .6);
-    }
-
     .demo-upload-list-cover2 {
         display: block;
         position: absolute;
@@ -724,10 +686,6 @@
     }
 
     .demo-upload-list:hover .demo-upload-list-cover {
-        display: block;
-    }
-
-    .demo-upload-list1:hover .demo-upload-list-cover1 {
         display: block;
     }
 

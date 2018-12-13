@@ -8,27 +8,30 @@
 * [事件](#events)
 
 <div id="installation"></div>
+
 ### [安装](#installation)
     npm install xayah
 
 <div id="usage"></div>
+
 ### [使用](#usage)
     
     app.js
     
-    import xMedia from 'xayah';
-    vue.use(xMedia);
+    import xayah from 'xayah';
+    vue.use(xayah);
  
     demo.vue
      
     <template>
         <div>
-            <x-media
+            <xayah
                 v-model="images"
-                max="5"
-                ...
+                :urls="urls"
+                :config="config"
+                @callback="callback"
             >
-            </x-media>
+            </xayah>
         </div>
     </template>
     <script>
@@ -57,23 +60,20 @@
 
  | name       | type   |required  |default|memo  |
  | -------    | ----   |--------  |------|-------|
- | value      | string | false    | []   | 可以使用 v-model 双向绑定数据|
- | max        | int    | false    | 1    | 最大选择数|
- | id         | string | false    | null | 文档DOM ID(隐藏上传组件)|
- | upload        | string | true     | null | 启用上传功能|
- | home  | string | true     | null | 启用返回首页功能|
- | back  | string | true     | null | 启用返回上一层功能|
- | insert | string | true     | null | 启用插入文件功能|
- | create  | string | true     | null | 启用创建目录功能|
- | readonly    | string | true     | null | 只读,不可选中  |
- | random    | bool | true     | null | 文件名随机生成  |
- | size    | bool | true     | null | 文件限制大小(kb)  |
- | list_url    | bool | true     | null | 获取文件列表地址  |
- | create_url    | bool | true     | null | 创建目录地址  |
- | policy_url    | bool | true     | null | 获取上传策略地址  |
- | upload_url    | bool | true     | null | 上传地址  |
- | check_url    | bool | true     | null | 检查文件唯一性地址  |
- | delete_url    | bool | true     | null | 删除文件地址  |
+ | value      | array | true    | []   | 可以使用 v-model 双向绑定数据|
+ | urls.index      | string | true    | ''   | 获取文件|
+ | urls.upload      | string | true    | ''   | 上传地址|
+ | urls.create      | string | true    | ''   | 创建目录|
+ | urls.check      | string | true    | ''  | 检查文件唯一|
+ | urls.policy      | string | true    | ''   | 获取上传策略|
+ | urls.delete      | string | true    | ''   | 删除文件或目录|
+ | urls.return      | string | true    | ''   | 本地回调地址|               
+| config.id      | string | false    | null   | Dom ID|
+| config.random      | string | false    | false   | 使用随机文件名|
+| config.size      | int | false    | 0   | 限制上传文件大小|
+| config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
+| config.max      | int | false    | 1   | 限制插入图片数量|
+| config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
 
 <div id="events"></div>
 
@@ -93,15 +93,14 @@
          
         <template>
                <div>
-                   <x-media
+                   <xayah
                        style="display:none;"
                        v-model="[]"
-                       max="5"
-                       id="editorImage"
-                       ...
+                       :config="config"
+                       :urls="urls"
                        @callback="callback"
                    >
-                   </x-media>
+                   </xayah>
                    
                    <quill-editor
                        v-model="content"
@@ -118,7 +117,25 @@
                                {
                                    url: ''
                                }
-                           ]
+                           ],
+                           urls:{
+                                index: '',    //获取文件地址
+                                upload: '',   //上传地址
+                                create: '',   //创建目录地址
+                                check: '',    //检查文件唯一
+                                policy: '',   //获取上传策略地址
+                                delete: '',   //删除文件或目录地址
+                                return: '',   //本地回调地址
+                           },
+                           config:{
+                                id:'editorImage',
+                                max:5,
+                                random:false,
+                                size:0,
+                                format:[
+                                    'jpg','png','jpeg'
+                                ]
+                           }
                        }
                    },
                    mounted(){

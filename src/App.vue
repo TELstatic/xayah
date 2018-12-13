@@ -2,15 +2,9 @@
     <div id="app">
         <div>
             <x-media
-                    :size="5120"
                     v-model="images"
-                    :max="5"
-                    upload_url=""
-                    createDir="1"
-                    deleteDir=""
-                    deleteFile=""
-                    checkFile=""
-                    getFile=""
+                    :urls="urls"
+                    :config="config"
             ></x-media>
         </div>
     </div>
@@ -22,15 +16,24 @@
         name: 'app',
         data() {
             return {
-                upload: true,   //上传功能
-                root: true,  //回首页功能
-                refresh: true, //刷新功能
-                reset: true,//重置功
-                back: true,   //返回功能
-                insert: true,   //插入功能
-                create: true,  //创建目录功能
-                policy: true, //获取上传策略地址
-                readonly: false,  //是否只读
+                urls: {
+                    index: null,    //获取文件地址
+                    upload: '',   //上传地址
+                    create: null,   //创建目录地址
+                    check: null,    //检查文件唯一
+                    policy: null,   //获取上传策略地址
+                    delete: null,   //删除文件或目录地址
+                    return: null,   //本地回调地址
+                },
+                config: {
+                    format: [
+                        'jpg', 'png', 'jpeg'
+                    ],     //上传类型限制
+                    size: 0,        //上传大小限制
+                    random: false,  //是否启用随机文件名
+                    max: 1,         //插入图片限制
+                    id: null,       //dom ID
+                },
                 max: 1,
                 random: true,
                 id: null,
