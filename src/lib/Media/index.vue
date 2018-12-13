@@ -213,7 +213,8 @@
                     format: [       //上传类型限制
                         'jpg', 'png', 'jpeg'
                     ],
-                    style:''
+                    style: '',
+                    key: 'id',
                 }
             },
             value: {
@@ -318,15 +319,15 @@
                     that.fileList = res.data.children.data;
                     that.query.total = res.data.children.total;
                     that.parentFolder = res.data.parent;
-                    that.form.pid = res.data.parent._id;
+                    that.form.pid = res.data.parent[that.config.key];
                 }).catch(function (error) {
                     console.error(error);
                 });
             },
             handleOpenFolder(folder) {
                 clearTimeout(time);
-                this.query.pid = folder._id;
-                this.form.pid = folder._id;
+                this.query.pid = folder[this.config.key];
+                this.form.pid = folder[this.config.key];
                 this.currentFolder = folder;
                 this.getFiles();
             },
@@ -552,9 +553,10 @@
                 });
             },
             handleDelete() {
+                let that = this;
                 let res = _(this.fileList).map().filter(function (o) {
                     return o.checked;
-                }).flatMap('_id').value();
+                }).flatMap(that.config.key).value();
 
                 let form = {
                     ids: res

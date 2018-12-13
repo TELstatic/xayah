@@ -154,6 +154,7 @@
                                 format:[
                                     'jpg','png','jpeg'
                                 ],
+                                key:'id',
                                 style:'?x-oss-process=style/thumb'
                            }
                        }
