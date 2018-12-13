@@ -187,9 +187,15 @@
 </template>
 <script>
     let time = null;
+    import {Notice} from 'iview';
+
+    let moment = require("moment");
 
     export default {
         name: 'xayah',
+        components: {
+            Notice
+        },
         props: {
             urls: {
                 type: Object,
@@ -277,7 +283,6 @@
                     Signature: null,
                     success_action_status: 200,
                     key: null,
-                    callback: null
                 },
                 uploadFile: [],
                 order: 0
@@ -327,7 +332,6 @@
             handleOpenFolder(folder) {
                 clearTimeout(time);
                 this.query.pid = folder[this.config.key];
-                this.form.pid = folder[this.config.key];
                 this.currentFolder = folder;
                 this.getFiles();
             },
@@ -365,13 +369,13 @@
                 this.currentImage = val;
             },
             handleFormatError() {
-                this.$Notice.warning({
+                Notice.warning({
                     title: '文件格式错误',
                     desc: '请上传以下格式文件 ' + this.config.format.join('|')
                 });
             },
             handleMaxSize() {
-                this.$Notice.warning({
+                Notice.warning({
                     title: '文件大小错误',
                     desc: '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件'
                 });
@@ -398,7 +402,7 @@
                     if (res.data.status === 200) {
                         this.uploadFiles(file);
                     } else {
-                        this.$Notice.warning({
+                        Notice.warning({
                             title: res.data.msg,
                             desc: '请修改' + file.name + '文件名'
                         });
@@ -409,6 +413,11 @@
             },
             uploadFiles(file) {
                 this.headers.key = this.parentFolder.path + '/' + file.name;
+
+                if (!this.headers.callback) {
+                    delete this.headers.callback;
+                }
+
                 this.$refs.upload.post(file);
             },
             checkPolicy() {
@@ -426,17 +435,19 @@
                 }
             },
             getPolicy() {
+                let that = this;
                 axios.get(this.urls.policy).then(function (res) {
-                    this.headers.OSSAccessKeyId = res.data.accessid;
-                    this.headers.Policy = res.data.policy;
-                    this.headers.Signature = res.data.signature;
+                    that.headers.OSSAccessKeyId = res.data.accessid;
+                    that.headers.Policy = res.data.policy;
+                    that.headers.Signature = res.data.signature;
                     try {
-                        this.headers.callback = res.data.callback;
+                        that.headers.callback = res.data.callback;
                     } catch (e) {
+
                     }
 
                     let policy = {};
-                    policy.value = this.headers;
+                    policy.value = that.headers;
                     policy.expire_at = moment().add(res.data.expire, 's');
 
                     localStorage.setItem('policy', JSON.stringify(policy));
@@ -465,18 +476,19 @@
                                 desc: 'client'
                             });
                         }
+                        that.getFiles();
                     }).catch(error => {
                         console.error(error);
                     });
                 } else {
                     if (res.status === 200) {
-                        this.$Notice.success({
+                        Notice.success({
                             title: '上传成功',
                             desc: 'server'
                         });
                         this.getFiles();
                     } else {
-                        this.$Notice.error({
+                        Notice.error({
                             title: '回调失败',
                             desc: '请联系管理员'
                         });
@@ -489,7 +501,7 @@
             error(err) {
                 console.error(err);
 
-                this.$Notice.error({
+                Notice.error({
                     title: '上传失败',
                     desc: '请联系管理员'
                 });
@@ -513,7 +525,7 @@
 
                 if (files.length > this.config.max) {
                     let msg = '图片最多选择' + this.config.max + '张,多选部分将被舍弃';
-                    this.$Notice.info({
+                    Notice.info({
                         title: '提示',
                         desc: msg
                     });
@@ -547,7 +559,7 @@
             },
             handleReload() {
                 this.getFiles();
-                this.$Notice.success({
+                Notice.success({
                     title: '刷新成功',
                     desc: ' '
                 });
@@ -564,13 +576,13 @@
 
                 axios.delete(this.urls.delete, {data: form}).then(res => {
                     if (res.data.status === 200) {
-                        this.$Notice.success({
+                        Notice.success({
                             title: '删除成功',
                             desc: ' '
                         });
-                        this.getFiles();
+                        that.getFiles();
                     } else {
-                        this.$Notice.error({
+                        Notice.error({
                             title: '删除失败',
                             desc: res.data.msg
                         });
@@ -591,18 +603,19 @@
                 this.$refs.form.resetFileds();
             },
             handleCreateFolder() {
+                let that = this;
                 this.$refs.form.validate((valid) => {
                     if (valid) {
                         axios.post(this.urls.create, this.form).then(function (res) {
                             if (res.data.status === 200) {
-                                this.$Notice.success({
+                                Notice.success({
                                     title: '目录创建成功',
                                     desc: ' '
                                 });
-                                this.clean();
-                                this.getFiles();
+                                that.clean();
+                                that.getFiles();
                             } else {
-                                this.$Notice.error({
+                                Notice.error({
                                     title: '目录创建失败',
                                     desc: res.data.msg
                                 });
@@ -611,7 +624,7 @@
                             console.error(error);
                         });
                     } else {
-                        this.$Notice.warning({
+                        Notice.warning({
                             title: '表单输入有误',
                             desc: '请检查'
                         });
