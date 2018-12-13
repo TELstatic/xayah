@@ -42,7 +42,26 @@
                         {
                             url: ''
                         }
-                    ]
+                    ],
+                    urls:{
+                        index: '',    //获取文件地址
+                        upload: '',   //上传地址
+                        create: '',   //创建目录地址
+                        check: '',    //检查文件唯一
+                        policy: '',   //获取上传策略地址
+                        delete: '',   //删除文件或目录地址
+                        return: '',   //本地回调地址
+                    },
+                    config:{
+                        id:'editorImage',
+                        max:5,
+                        random:false,
+                        size:0,
+                        format:[
+                            'jpg','png','jpeg'
+                        ],
+                        style:'?x-oss-process=style/thumb'
+                    }
                 }
             },
             methods: {
@@ -134,7 +153,8 @@
                                 size:0,
                                 format:[
                                     'jpg','png','jpeg'
-                                ]
+                                ],
+                                style:'?x-oss-process=style/thumb'
                            }
                        }
                    },
