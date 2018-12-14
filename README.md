@@ -1,6 +1,6 @@
 # xayah
 
-> 阿里云上传配套组件
+> 阿里云上传配套组件(iView)
 
 * [安装](#installation)
 * [使用](#usage)
@@ -17,6 +17,10 @@
 ### [使用](#usage)
     
     app.js
+    
+    import iView from 'iview';
+    Vue.use(iView); //xayah 依赖iView 此代码必须
+    import 'iview/dist/styles/iview.css';
     
     import xayah from 'xayah';
     vue.use(xayah);
@@ -93,6 +97,7 @@
 | config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
 | config.max      | int | false    | 1   | 限制插入图片数量|
 | config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
+| config.key      | string | false    | 'id'   |  兼容 MongoDB |
 
 <div id="events"></div>
 
@@ -155,7 +160,7 @@
                                     'jpg','png','jpeg'
                                 ],
                                 key:'id',
-                                style:'?x-oss-process=style/thumb'
+                                style:''
                            }
                        }
                    },

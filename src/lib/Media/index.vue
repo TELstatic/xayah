@@ -187,14 +187,15 @@
 </template>
 <script>
     let time = null;
-    import {Notice} from 'iview';
+
+    import {Notice, Icon, Modal, Tooltip, Row, Upload, Divider, Page, FormItem} from 'iview';
 
     let moment = require("moment");
 
     export default {
         name: 'xayah',
         components: {
-            Notice
+            Notice, Icon, Modal, Tooltip, Row, Upload, Divider, Page, FormItem
         },
         props: {
             urls: {
