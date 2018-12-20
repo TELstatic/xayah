@@ -353,6 +353,12 @@
             handleAddFolder() {
                 let that = this;
                 that.visible3 = true;
+
+                try {
+                    this.$refs.form.resetFileds();
+                } catch (e) {
+
+                }
             },
             clear() {
                 this.form.name = null;
@@ -601,7 +607,6 @@
             clean() {
                 this.visible3 = false;
                 this.form.name = null;
-                this.$refs.form.resetFileds();
             },
             handleCreateFolder() {
                 let that = this;
