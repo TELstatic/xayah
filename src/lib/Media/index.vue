@@ -279,11 +279,7 @@
                     url: null
                 },
                 headers: {
-                    OSSAccessKeyId: null,
-                    Policy: null,
-                    Signature: null,
-                    success_action_status: 200,
-                    key: null,
+
                 },
                 uploadFile: [],
                 order: 0
@@ -421,10 +417,6 @@
             uploadFiles(file) {
                 this.headers.key = this.parentFolder.path + '/' + file.name;
 
-                if (!this.headers.callback) {
-                    delete this.headers.callback;
-                }
-
                 this.$refs.upload.post(file);
             },
             checkPolicy() {
@@ -444,14 +436,7 @@
             getPolicy() {
                 let that = this;
                 axios.get(this.urls.policy).then(function (res) {
-                    that.headers.OSSAccessKeyId = res.data.accessid;
-                    that.headers.Policy = res.data.policy;
-                    that.headers.Signature = res.data.signature;
-                    try {
-                        that.headers.callback = res.data.callback;
-                    } catch (e) {
-
-                    }
+                    that.headers = res.data.data;
 
                     let policy = {};
                     policy.value = that.headers;
@@ -463,8 +448,6 @@
                 });
             },
             success(res, file, fileList) {
-                console.info(fileList);
-
                 let that = this;
                 if (!!this.urls.return) {
                     let form = {};
