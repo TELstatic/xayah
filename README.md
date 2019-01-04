@@ -64,7 +64,9 @@
                         format:[
                             'jpg','png','jpeg'
                         ],
-                        style:'?x-oss-process=style/thumb'
+                        style:'?x-oss-process=style/thumb',
+                        key:'id',
+                        gateway:'oss'
                     }
                 }
             },
@@ -98,6 +100,7 @@
 | config.max      | int | false    | 1   | 限制插入图片数量|
 | config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
 | config.key      | string | false    | 'id'   |  兼容 MongoDB |
+| config.gateway      | string | false    | 'oss'   | 多网关  |
 
 <div id="events"></div>
 
@@ -160,7 +163,8 @@
                                     'jpg','png','jpeg'
                                 ],
                                 key:'id',
-                                style:''
+                                style:'',
+                                gateway:'oss'
                            }
                        }
                    },

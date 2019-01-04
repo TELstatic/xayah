@@ -222,6 +222,7 @@
                     ],
                     style: '',
                     key: 'id',
+                    gateway: 'oss'
                 }
             },
             value: {
@@ -278,9 +279,7 @@
                 currentImage: {
                     url: null
                 },
-                headers: {
-
-                },
+                headers: {},
                 uploadFile: [],
                 order: 0
             }
@@ -421,8 +420,8 @@
             },
             checkPolicy() {
                 let that = this;
-                if (localStorage.getItem('policy')) {
-                    let policy = JSON.parse(localStorage.getItem('policy'));
+                if (localStorage.getItem(that.config.gateway + '_policy')) {
+                    let policy = JSON.parse(localStorage.getItem(that.config.gateway + '_policy'));
 
                     if (moment().isBefore(moment(policy.expire_at))) {
                         that.headers = policy.value;
@@ -442,7 +441,7 @@
                     policy.value = that.headers;
                     policy.expire_at = moment().add(res.data.expire, 's');
 
-                    localStorage.setItem('policy', JSON.stringify(policy));
+                    localStorage.setItem(that.config.gateway + '_policy', JSON.stringify(policy));
                 }).catch(function (error) {
                     console.error(error);
                 });
