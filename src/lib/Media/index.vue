@@ -1,15 +1,15 @@
 <template>
     <div style="display: inline">
-        <div class="demo-upload-list" v-for="(item,index) in value">
+        <div class="demo-upload-list" v-for="(item,index) in images">
             <img :src="item.url">
             <div class="demo-upload-list-cover">
                 <Icon type="ios-eye-outline" @click.native="handleReview(item)"></Icon>
                 <Icon type="ios-trash-outline" @click.native="handleSlice(index)"></Icon>
             </div>
         </div>
-        <div style="display: inline;">
+        <div style="display: inline;" v-if="images.length<max">
             <div class="demo-upload-list"
-                 :id="config.id"
+                 :id="id"
                  @click="handleOpen"
                  style="display: inline-block;width:58px;">
                 <div style="width: 58px;height:58px;line-height: 58px;">
@@ -213,10 +213,8 @@
             config: {
                 type: Object,
                 default: {
-                    id: null,       //dom ID
                     random: false,  //是否启用随机文件名
                     size: 0,        //上传大小限制
-                    max: 1,         //插入图片限制
                     format: [       //上传类型限制
                         'jpg', 'png', 'jpeg'
                     ],
@@ -225,13 +223,37 @@
                     gateway: 'oss'
                 }
             },
+            id: {       //dom ID
+                type: String,
+                default: ''
+            },
+            max: {      //插入图片限制
+                type: Number,
+                default: 1
+            },
+            type: {
+                type: String,
+                default: 'object'
+            },
             value: {
-                type: Array,
-                default: []
+                default: ""
+            },
+            formatImages: {
+                type: Function,
+                default: function () {
+                    return this.formatValue();
+                }
+            },
+            formatReturn: {
+                type: Function,
+                default: function (files) {
+                    return this.formatCallback(files);
+                }
             }
         },
         data() {
             return {
+                images: this.formatImages(),
                 visable: false,
                 visible2: false,
                 visible3: false,
@@ -304,6 +326,59 @@
             }
         },
         methods: {
+            formatCallback(files) {
+                switch (this.type) {
+                    default:
+                    case 'object':
+                        return files;
+                    case 'array':
+                        let temp = [];
+                        for (let i = 0; i < files.length; i++) {
+                            temp[i] = files[i].url;
+                        }
+                        return temp;
+                    case 'string':
+                        return files[0].url;
+                }
+            },
+            formatValue() {
+                let arr;
+
+                switch (Object.prototype.toString.call(this.value)) {
+                    case '[object String]':
+                        arr = [{
+                            url: this.value
+                        }];
+
+                        break;
+                    case '[object Array]':
+                        let type = Object.prototype.toString.call(this.value[0]);
+                        switch (type) {
+                            case '[object String]':
+                                arr = [];
+                                for (let i = 0; i < this.value.length; i++) {
+                                    arr[i] = {};
+                                    arr[i].url = this.value[i];
+                                }
+
+                                break;
+                            case '[object Object]':
+                                arr = this.value;
+
+                                break;
+                            default:
+                                console.error('暂不支持数组和对象以外的类型');
+                                arr = [];
+                                break;
+                        }
+                        break;
+                    default:
+                        console.error('未知格式');
+                        break;
+                }
+
+                return arr;
+            },
             formatImage(url) {
                 return url + this.config.style;
             },
@@ -343,7 +418,7 @@
                 this.fileList[index]['checked'] = false;
             },
             handleSlice(index) {
-                this.value.splice(index, 1);
+                this.images.splice(index, 1);
             },
             handleAddFolder() {
                 let that = this;
@@ -512,17 +587,22 @@
                     files.push(obj)
                 });
 
-                if (files.length > this.config.max) {
-                    let msg = '图片最多选择' + this.config.max + '张,多选部分将被舍弃';
+                if (files.length > this.max) {
+                    let msg = '图片最多选择' + this.max + '张,多选部分将被舍弃';
                     Notice.info({
                         title: '提示',
                         desc: msg
                     });
-                    files = files.slice(0, this.config.max);
+                    files = files.slice(0, this.max);
                 }
 
-                this.$emit('input', files);
-                this.$emit('callback', files);
+                let res = this.formatReturn(files);
+
+                this.$emit('input', res);
+                this.$emit('callback', res);
+
+                this.images = files;
+
                 this.order = 0;
                 this.visable = false;
                 this.handleReset();
