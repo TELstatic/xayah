@@ -5,6 +5,7 @@
 * [安装](#installation)
 * [使用](#usage)
 * [属性](#props)
+* [更新说明](#desc)
 * [事件](#events)
 
 <div id="installation"></div>
@@ -32,6 +33,8 @@
             <xayah
                 v-model="images"
                 :urls="urls"
+                :id="id"
+                :max="5"
                 :config="config"
                 @callback="callback"
             >
@@ -56,9 +59,9 @@
                         delete: '',   //删除文件或目录地址
                         return: '',   //本地回调地址
                     },
+                    id:'editorImage',
+                    max:5,
                     config:{
-                        id:'editorImage',
-                        max:5,
                         random:false,
                         size:0,
                         format:[
@@ -93,15 +96,29 @@
  | urls.policy      | string | true    | ''   | 获取上传策略|
  | urls.delete      | string | true    | ''   | 删除文件或目录|
  | urls.return      | string | true    | ''   | 本地回调地址|               
-| config.id      | string | false    | null   | Dom ID|
+| id      | string | false    | null   | Dom ID|
+| max      | int | false    | 1   | 限制插入图片数量|
+| type      | string | false    | 'object'   | 默认返回类型 |
 | config.random      | string | false    | false   | 使用随机文件名|
 | config.size      | int | false    | 0   | 限制上传文件大小|
 | config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
-| config.max      | int | false    | 1   | 限制插入图片数量|
 | config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
 | config.key      | string | false    | 'id'   |  兼容 MongoDB |
 | config.gateway      | string | false    | 'oss'   | 多网关  |
+| config.formatValue      | function | false    |  详见代码   | 格式化 value 值 |
+| config.formatReturn      | function | false    |  详见代码   | 格式化返回值 |
 
+<div id="desc"></div>
+
+### [更新说明](#desc)
+
+    1. 版本1.0.23 
+        分离 DOM id 配置项
+        分离 max 配置项
+        增加 value 多类型适配 默认支持 字符串,数组,对象 可自行拓展
+        增加 返回值 多类型适配 支持 字符串,数组,对象
+        
+        
 <div id="events"></div>
 
 ### [事件](#events)
@@ -125,6 +142,8 @@
                        v-model="[]"
                        :config="config"
                        :urls="urls"
+                       :id="id"
+                       :max="5"
                        @callback="callback"
                    >
                    </xayah>
@@ -154,9 +173,9 @@
                                 delete: '',   //删除文件或目录地址
                                 return: '',   //本地回调地址
                            },
+                           id:'editorImage',
+                           max:5,
                            config:{
-                                id:'editorImage',
-                                max:5,
                                 random:false,
                                 size:0,
                                 format:[

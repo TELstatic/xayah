@@ -1,11 +1,13 @@
 <template>
     <div id="app">
         <div>
-            <x-media
-                    v-model="images"
-                    :urls="urls"
-                    :config="config"
-            ></x-media>
+            <x-media v-model="images3"
+                     :urls="urls"
+                     :max="1"
+                     type="object"
+                     :config="config"
+                     @callback="callback">
+            </x-media>
         </div>
     </div>
 </template>
@@ -31,15 +33,27 @@
                     ],     //上传类型限制
                     size: 0,        //上传大小限制
                     random: false,  //是否启用随机文件名
-                    max: 1,         //插入图片限制
-                    id: null,       //dom ID
                     key: 'id',
+                    style: ''
                 },
                 max: 1,
                 random: true,
                 id: null,
-                images: [],
+                images1: "",
+                images2: [
+                    "",
+                ],
+                images3: [
+                    {
+                        url: ""
+                    }
+                ],
                 msg: 'Welcome to Your Vue.js App'
+            }
+        },
+        methods: {
+            callback(val) {
+                console.log(val)
             }
         }
     }
