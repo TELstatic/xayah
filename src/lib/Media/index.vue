@@ -188,15 +188,10 @@
 <script>
     let time = null;
 
-    import {Notice, Icon, Modal, Tooltip, Row, Upload, Divider, Page, FormItem} from 'iview';
-
     let moment = require("moment");
 
     export default {
         name: 'xayah',
-        components: {
-            Notice, Icon, Modal, Tooltip, Row, Upload, Divider, Page, FormItem
-        },
         props: {
             urls: {
                 type: Object,
@@ -253,7 +248,6 @@
         },
         data() {
             return {
-                images: this.formatImages(),
                 visable: false,
                 visible2: false,
                 visible3: false,
@@ -318,6 +312,9 @@
                     return o.checked && o.type === "file";
                 }).length;
                 return !res;
+            },
+            images(){
+                return this.formatValue();
             }
         },
         mounted() {
@@ -608,8 +605,6 @@
 
                 this.$emit('input', res);
                 this.$emit('callback', res);
-
-                this.images = files;
 
                 this.order = 0;
                 this.visable = false;
