@@ -188,10 +188,15 @@
 <script>
     let time = null;
 
+    import {Notice} from 'iview';
+
     let moment = require("moment");
 
     export default {
         name: 'xayah',
+        components: {
+            Notice
+        },
         props: {
             urls: {
                 type: Object,
