@@ -252,6 +252,7 @@
                 visible2: false,
                 visible3: false,
                 fileList: [],
+                temp: this.value,
                 query: {
                     pid: null,
                     page: 1,
@@ -313,7 +314,7 @@
                 }).length;
                 return !res;
             },
-            images(){
+            images() {
                 return this.formatValue();
             }
         },
@@ -341,29 +342,29 @@
             formatValue() {
                 let arr;
 
-                switch (Object.prototype.toString.call(this.value)) {
+                switch (Object.prototype.toString.call(this.temp)) {
                     case '[object String]':
-                        if (this.value) {
+                        if (this.temp) {
                             arr = [{
-                                url: this.value
+                                url: this.temp
                             }];
                         } else {
                             arr = [];
                         }
                         break;
                     case '[object Array]':
-                        let type = Object.prototype.toString.call(this.value[0]);
+                        let type = Object.prototype.toString.call(this.temp[0]);
                         switch (type) {
                             case '[object String]':
                                 arr = [];
-                                for (let i = 0; i < this.value.length; i++) {
+                                for (let i = 0; i < this.temp.length; i++) {
                                     arr[i] = {};
-                                    arr[i].url = this.value[i];
+                                    arr[i].url = this.temp[i];
                                 }
 
                                 break;
                             case '[object Object]':
-                                arr = this.value;
+                                arr = this.temp;
                                 break;
                             case '[object Undefined]':
                                 arr = [];
@@ -378,7 +379,7 @@
                         arr = [];
                         break;
                     default:
-                        console.error('未知格式', Object.prototype.toString.call(this.value));
+                        console.error('未知格式', Object.prototype.toString.call(this.temp));
                         break;
                 }
 
@@ -423,7 +424,34 @@
                 this.fileList[index]['checked'] = false;
             },
             handleSlice(index) {
-                this.images.splice(index, 1);
+                switch (Object.prototype.toString.call(this.temp)) {
+                    case '[object String]':
+                        this.temp = '';
+                        break;
+                    case '[object Array]':
+                        let type = Object.prototype.toString.call(this.temp[0]);
+                        switch (type) {
+                            case '[object String]':
+                                this.temp.splice(index, 1);
+                                break;
+                            case '[object Object]':
+                                this.temp.splice(index, 1);
+                                break;
+                            case '[object Undefined]':
+                                this.temp = '';
+                                break;
+                            default:
+                                this.temp = '';
+                                break;
+                        }
+                        break;
+                    case '[object Null]':
+                        this.temp = '';
+                        break;
+                    default:
+                        this.temp = '';
+                        break;
+                }
             },
             handleAddFolder() {
                 let that = this;
@@ -603,6 +631,7 @@
 
                 let res = this.formatReturn(files);
 
+                this.temp = res;
                 this.$emit('input', res);
                 this.$emit('callback', res);
 
