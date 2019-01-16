@@ -323,6 +323,11 @@
                 return this.formatValue();
             }
         },
+        watch: {
+            value(val) {
+                this.temp = this.value;
+            }
+        },
         mounted() {
             if (this.urls.policy) {
                 this.checkPolicy();

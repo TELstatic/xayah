@@ -98,6 +98,10 @@
                         </Col>
                     </Row>
                 </FormItem>
+                <FormItem>
+                    <Button type="primary" @click="handleSubmit">创建</Button>
+                    <Button @click="handleReset" style="margin-left: 8px">重置</Button>
+                </FormItem>
             </div>
         </Form>
     </div>
@@ -113,7 +117,7 @@
                 form: {
                     images: [
                         {
-                            url: ''
+                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
                         }
                     ],
                     items: [
@@ -123,14 +127,14 @@
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: '',
+                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
                         }, {
                             sku: null,
                             module: null,
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: '',
+                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
                         }
                     ]
                 },
@@ -178,7 +182,29 @@
                 console.log(this.form)
             },
             handleReset() {
+                console.log('重置')
+                this.form = {
+                    images: [
 
+                    ],
+                    items: [
+                        {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: null,
+                        }, {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: null,
+                        }
+                    ]
+                };
             },
             clear() {
                 this.form = {
