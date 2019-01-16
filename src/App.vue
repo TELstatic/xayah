@@ -39,13 +39,11 @@
                 max: 1,
                 random: true,
                 id: null,
-                images1: "",
-                images2: [
-                    "",
-                ],
+                images1: '',
+                images2: [],
                 images3: [
                     {
-                        url: ""
+                        url:'//sds'
                     }
                 ],
                 msg: 'Welcome to Your Vue.js App'

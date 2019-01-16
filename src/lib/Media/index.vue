@@ -346,10 +346,13 @@
 
                 switch (Object.prototype.toString.call(this.value)) {
                     case '[object String]':
-                        arr = [{
-                            url: this.value
-                        }];
-
+                        if (this.value) {
+                            arr = [{
+                                url: this.value
+                            }];
+                        } else {
+                            arr = [];
+                        }
                         break;
                     case '[object Array]':
                         let type = Object.prototype.toString.call(this.value[0]);
@@ -364,16 +367,21 @@
                                 break;
                             case '[object Object]':
                                 arr = this.value;
-
+                                break;
+                            case '[object Undefined]':
+                                arr = [];
                                 break;
                             default:
-                                console.error('暂不支持数组和对象以外的类型');
+                                console.error('暂不支持数组和对象以外的类型', type);
                                 arr = [];
                                 break;
                         }
                         break;
+                    case '[object Null]':
+                        arr = [];
+                        break;
                     default:
-                        console.error('未知格式');
+                        console.error('未知格式', Object.prototype.toString.call(this.value));
                         break;
                 }
 
