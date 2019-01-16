@@ -1,40 +1,109 @@
 <template>
     <div id="app">
-        <div>
-
-            <Button type="success" @click="handleCreate">新增</Button>
-            <Modal :transfer="false"
-                   :z-index="1"
-                   v-model="visable"
-                   title="品牌">
-                <Form ref="form" :model="form" :label-width="80">
-                    <FormItem label="名称" prop="title">
-                        <Input v-model="form.title" size="large" placeholder="请输入名称"></Input>
-                    </FormItem>
-                    <FormItem label="排序" prop="sort">
-                        <Tooltip content="品牌排序,值越小越靠前" placement="right">
-                            <Icon type="help-circled"></Icon>
-                        </Tooltip>
-                        <InputNumber :max="255" :min="0" v-model="form.sort"></InputNumber>
-                    </FormItem>
-                    <FormItem label="商标" prop="images">
-                        <x-media v-model="form.images"
-                                 :urls="urls"
-                                 :max="1"
-                                 type="string"
-                                 :config="config"
-                                 @callback="callback">
-                        </x-media>
-                    </FormItem>
-                </Form>
-                <div slot="footer">
-                    <Button type="primary" v-if="!form.id" @click="handleSubmit">保存</Button>
-                    <Button type="warning" v-else @click="handleSubmit">更新</Button>
+        <Form ref="form" :model="form" :label-width="100">
+            <FormItem label="商品图片">
+                <x-media v-model="form.images"
+                         :urls="urls"
+                         :max="5"
+                         :config="config">
+                </x-media>
+            </FormItem>
+            <div>
+                <Row>
+                    <Col span="24">
+                        <FormItem style="height: 10px;" label="规格参数">
+                            <Row :gutter="10">　
+                                <Col span="2">
+                                    型号
+                                </Col>
+                                <Col span="2">
+                                    规格
+                                </Col>
+                                <Col span="2">
+                                    价格
+                                </Col>
+                                <Col span="2">
+                                    库存
+                                </Col>
+                                <Col span="3">
+                                    货号
+                                </Col>
+                                <Col span="3">
+                                    缩略图
+                                </Col>
+                                <Col span="3">
+                                    操作
+                                </Col>
+                            </Row>
+                        </FormItem>
+                    </Col>
+                </Row>
+                <FormItem
+                        v-for="(item, index) in form.items"
+                        :key="index"
+                        :label="'单品 ' + (index+1) ">
+                    <Row :gutter="10">
+                        <Col span="2">
+                            <Poptip trigger="focus">
+                                <Input type="text" v-model="item.module"
+                                       placeholder="请输入型号"></Input>
+                                <div slot="content">{{ formatText(item.module) }}</div>
+                            </Poptip>
+                        </Col>
+                        <Col span="2">
+                            <Poptip trigger="focus">
+                                <Input type="text" v-model="item.standard"
+                                       placeholder="请输入规格"></Input>
+                                <div slot="content">{{ formatText(item.standard) }}</div>
+                            </Poptip>
+                        </Col>
+                        <Col span="2">
+                            <Poptip trigger="focus">
+                                <Input type="text" v-model="item.price"
+                                       placeholder="请输入价格"></Input>
+                                <div slot="content">{{ formatText(item.price) }}</div>
+                            </Poptip>
+                        </Col>
+                        <Col span="2">
+                            <Poptip trigger="focus">
+                                <Input type="text" v-model="item.reserve"
+                                       placeholder="请输入库存"></Input>
+                                <div slot="content">{{ formatText(item.reserve) }}</div>
+                            </Poptip>
+                        </Col>
+                        <Col span="2">
+                            <Poptip trigger="focus">
+                                <Input type="text" v-model="item.sku"
+                                       placeholder="请输入货号"></Input>
+                                <div slot="content">{{ formatText(item.sku) }}</div>
+                            </Poptip>
+                        </Col>
+                        <Col span="3">
+                            <x-media v-model="item.images"
+                                     :urls="urls"
+                                     :max="1"
+                                     type="string"
+                                     :config="config">
+                            </x-media>
+                        </Col>
+                        <Col span="3">
+                            <Button :disabled="!index" @click="handleRemove(index)">删除</Button>
+                        </Col>
+                    </Row>
+                </FormItem>
+                <FormItem>
+                    <Row>
+                        <Col span="12">
+                            <Button type="dashed" long @click="handleAdd" icon="plus-round">新增单品</Button>
+                        </Col>
+                    </Row>
+                </FormItem>
+                <FormItem>
+                    <Button type="primary" @click="handleSubmit">创建</Button>
                     <Button @click="handleReset" style="margin-left: 8px">重置</Button>
-                </div>
-            </Modal>
-
-        </div>
+                </FormItem>
+            </div>
+        </Form>
     </div>
 </template>
 
@@ -46,10 +115,28 @@
             return {
                 visable: false,
                 form: {
-                    id: null,
-                    title: null,
-                    sort: 0,
-                    images: ''
+                    images: [
+                        {
+                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
+                        }
+                    ],
+                    items: [
+                        {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }, {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }
+                    ]
                 },
                 urls: {
                     index: 'test.json',    //获取文件地址
@@ -72,13 +159,14 @@
                 max: 1,
                 random: true,
                 id: null,
-                images1: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/test/Paris.jpg',
+                images1: '',
                 images2: [],
                 images3: [
                     {
                         url: '//sds'
                     }
                 ],
+
                 msg: 'Welcome to Your Vue.js App'
             }
         },
@@ -94,7 +182,29 @@
                 console.log(this.form)
             },
             handleReset() {
+                console.log('重置')
+                this.form = {
+                    images: [
 
+                    ],
+                    items: [
+                        {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: null,
+                        }, {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: null,
+                        }
+                    ]
+                };
             },
             clear() {
                 this.form = {
@@ -103,7 +213,26 @@
                     sort: 0,
                     images: ''
                 };
-            }
+            },
+            formatText(val) {
+                if (!this.val) {
+                    return 'Enter value';
+                }
+                return val;
+            },
+            handleRemove(index) {
+                this.form.items.splice(index, 1);
+            },
+            handleAdd() {
+                this.form.items.push({
+                    sku: null,
+                    module: null,
+                    standard: null,
+                    price: null,
+                    reserve: null,
+                    images: null,
+                });
+            },
         }
     }
 </script>
