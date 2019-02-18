@@ -199,7 +199,7 @@
         return false;
     }
 
-    import Emitter from 'iview/src/mixins/emitter';
+    import Emitter from '../../mixins/emitter';
 
     let moment = require("moment");
 
