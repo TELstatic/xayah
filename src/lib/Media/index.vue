@@ -190,10 +190,22 @@
 
     import {Notice} from 'iview';
 
+    function oneOf(value, validList) {
+        for (let i = 0; i < validList.length; i++) {
+            if (value === validList[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    import Emitter from '../../mixins/emitter';
+
     let moment = require("moment");
 
     export default {
         name: 'xayah',
+        mixins: [Emitter],
         components: {
             Notice
         },
@@ -233,6 +245,9 @@
             },
             type: {
                 type: String,
+                validator(value) {
+                    return oneOf(value, ['object', 'array', 'string']);
+                },
                 default: 'object'
             },
             value: {
@@ -257,7 +272,7 @@
                 visible2: false,
                 visible3: false,
                 fileList: [],
-                temp: this.value,
+                currentValue: this.value,
                 query: {
                     pid: null,
                     page: 1,
@@ -325,7 +340,7 @@
         },
         watch: {
             value(val) {
-                this.temp = this.value;
+                this.currentValue = this.value;
             }
         },
         mounted() {
@@ -352,29 +367,29 @@
             formatValue() {
                 let arr;
 
-                switch (Object.prototype.toString.call(this.temp)) {
+                switch (Object.prototype.toString.call(this.currentValue)) {
                     case '[object String]':
-                        if (this.temp) {
+                        if (this.currentValue) {
                             arr = [{
-                                url: this.temp
+                                url: this.currentValue
                             }];
                         } else {
                             arr = [];
                         }
                         break;
                     case '[object Array]':
-                        let type = Object.prototype.toString.call(this.temp[0]);
+                        let type = Object.prototype.toString.call(this.currentValue[0]);
                         switch (type) {
                             case '[object String]':
                                 arr = [];
-                                for (let i = 0; i < this.temp.length; i++) {
+                                for (let i = 0; i < this.currentValue.length; i++) {
                                     arr[i] = {};
-                                    arr[i].url = this.temp[i];
+                                    arr[i].url = this.currentValue[i];
                                 }
 
                                 break;
                             case '[object Object]':
-                                arr = this.temp;
+                                arr = this.currentValue;
                                 break;
                             case '[object Undefined]':
                                 arr = [];
@@ -389,7 +404,7 @@
                         arr = [];
                         break;
                     default:
-                        console.error('未知格式', Object.prototype.toString.call(this.temp));
+                        console.error('未知格式', Object.prototype.toString.call(this.currentValue));
                         break;
                 }
 
@@ -434,32 +449,32 @@
                 this.fileList[index]['checked'] = false;
             },
             handleSlice(index) {
-                switch (Object.prototype.toString.call(this.temp)) {
+                switch (Object.prototype.toString.call(this.currentValue)) {
                     case '[object String]':
-                        this.temp = '';
+                        this.currentValue = '';
                         break;
                     case '[object Array]':
-                        let type = Object.prototype.toString.call(this.temp[0]);
+                        let type = Object.prototype.toString.call(this.currentValue[0]);
                         switch (type) {
                             case '[object String]':
-                                this.temp.splice(index, 1);
+                                this.currentValue.splice(index, 1);
                                 break;
                             case '[object Object]':
-                                this.temp.splice(index, 1);
+                                this.currentValue.splice(index, 1);
                                 break;
                             case '[object Undefined]':
-                                this.temp = '';
+                                this.currentValue = '';
                                 break;
                             default:
-                                this.temp = '';
+                                this.currentValue = '';
                                 break;
                         }
                         break;
                     case '[object Null]':
-                        this.temp = '';
+                        this.currentValue = '';
                         break;
                     default:
-                        this.temp = '';
+                        this.currentValue = '';
                         break;
                 }
             },
@@ -641,9 +656,10 @@
 
                 let res = this.formatReturn(files);
 
-                this.temp = res;
+                this.currentValue = res;
                 this.$emit('input', res);
                 this.$emit('callback', res);
+                this.dispatch('FormItem', 'on-form-change', res);
 
                 this.order = 0;
                 this.visable = false;

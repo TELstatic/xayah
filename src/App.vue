@@ -1,7 +1,10 @@
 <template>
     <div id="app">
-        <Form ref="form" :model="form" :label-width="100">
-            <FormItem label="商品图片">
+        <Form ref="form" :model="form" :rules="rules" :label-width="100">
+            <FormItem label="商品标题" prop="title">
+                <Input type="text" v-model="form.title" placeholder="请输入商品标题"></Input>
+            </FormItem>
+            <FormItem label="商品图片" prop="images">
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
@@ -115,6 +118,7 @@
             return {
                 visable: false,
                 form: {
+                    title: null,
                     images: [
                         {
                             url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
@@ -156,6 +160,19 @@
                     key: 'id',
                     style: ''
                 },
+                rules: {
+                    title: {
+                        required: true,
+                        message: '请输入商品名称',
+                        trigger: 'change'
+                    },
+                    images: {
+                        required: true,
+                        type: 'array',
+                        message: '请选择商品图片',
+                        trigger: 'change'
+                    }
+                },
                 max: 1,
                 random: true,
                 id: null,
@@ -180,13 +197,19 @@
             },
             handleSubmit() {
                 console.log(this.form)
+
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        console.log('Success!');
+                    } else {
+                        console.error('Fail!');
+                    }
+                });
             },
             handleReset() {
                 console.log('重置')
                 this.form = {
-                    images: [
-
-                    ],
+                    images: [],
                     items: [
                         {
                             sku: null,
