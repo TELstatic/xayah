@@ -172,7 +172,7 @@
                 :transfer="true"
                 @on-ok="handleCloseFolder"
                 @on-cancel="handleCloseFolder">
-            <Form :model="form" :rules="rules" ref="form">
+            <Form :model="form" :rules="rules" ref="form" @keydown.native.enter.prevent="handleCreateFolder">
                 <FormItem prop="name">
                     <Input type="text" v-model="form.name" autofocus clearable placeholder="请输入目录名称"></Input>
                 </FormItem>
@@ -530,6 +530,23 @@
                 this.visible3 = false;
             },
             checkFile(file) {
+                let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
+
+                if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
+                    Notice.warning({
+                        title: '文件名包含特殊字符',
+                        desc: '请修改' + file.name + '文件名',
+                    });
+
+                    Notice.info({
+                        title: '文件名仅支持以下字符',
+                        desc: '中英文,数字,下划线减号空格【_，-， 】',
+                        duration: 0,
+                    });
+
+                    return false;
+                }
+
                 let form = {};
                 form.path = this.parentFolder.path + '/' + file.name;
 
