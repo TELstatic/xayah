@@ -755,7 +755,7 @@
                 }
 
                 let form = {};
-                form.path = this.parentFolder.path + '/' + filename;
+                form.path = this.parentFolder.path + '/' + file.name;
 
                 axios.post(this.urls.check, form).then(res => {
                     if (res.data.status === 200) {
