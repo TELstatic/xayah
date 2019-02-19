@@ -144,7 +144,7 @@
                 },
                 urls: {
                     index: 'test.json',    //获取文件地址
-                    upload: '',   //上传地址
+                    upload: '//delii.oss-cn-shanghai.aliyuncs.com/',   //上传地址
                     create: null,   //创建目录地址
                     check: null,    //检查文件唯一
                     policy: null,   //获取上传策略地址

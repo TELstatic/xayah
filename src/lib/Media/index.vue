@@ -429,7 +429,8 @@
                 ],
                 currentFolder: null,
                 parentFolder: {
-                    pid: null
+                    pid: null,
+                    path: '/',
                 },
                 currentFile: {
                     path: null,
@@ -443,7 +444,7 @@
                     url: null
                 },
                 headers: {},
-                uploadFile: [],
+                uploadList: [],
                 order: 0
             }
         },
@@ -458,7 +459,8 @@
                 let res = _.filter(this.fileList, function (o) {
                     return o.checked && o.type === "file";
                 }).length;
-                return !res;
+
+                return !res && !this.uploadList.length;
             },
             uploadStatus() {
                 let res = _.filter(this.cloud.form.items, function (o) {
@@ -499,6 +501,13 @@
                     return 'Enter value';
                 }
                 return val;
+            },
+            formatUrl(url) {
+                if (url.charAt(url.length - 1) === '/') {
+                    return url.substr(0, url.length - 1);
+                }
+
+                return url;
             },
             formatCallback(files) {
                 switch (this.type) {
@@ -566,9 +575,9 @@
             },
             handleOpen() {
                 this.visible = true;
+                this.uploadList = [];
                 this.getFiles();
             },
-
             getFiles() {
                 let that = this;
 
@@ -800,6 +809,13 @@
             },
             success(res, file, fileList) {
                 let that = this;
+
+                this.uploadList.push({
+                    type: 'file',
+                    checked: true,
+                    url: this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name,
+                });
+
                 if (!!this.urls.return) {
                     let form = {};
                     form.filename = this.parentFolder.path + '/' + file.name;
@@ -857,11 +873,18 @@
 
                 let files = [];
 
+                this.uploadList.forEach(function (current, index) {
+                    let obj = {};
+                    obj.url = current.url;
+
+                    files.push(obj);
+                });
+
                 items.forEach(function (current, index) {
                     let obj = {};
                     obj.url = items[index].url;
 
-                    files.push(obj)
+                    files.push(obj);
                 });
 
                 if (files.length > this.max) {
