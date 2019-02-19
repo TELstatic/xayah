@@ -689,9 +689,7 @@
                 if (this.config.random) {
                     this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
                 } else {
-                    if (this.checkFile(file.name)) {
-                        this.uploadFiles(file);
-                    }
+                    this.checkFile(file);
 
                     return false;
                 }
@@ -738,13 +736,13 @@
             handleCloseFolder() {
                 this.visible3 = false;
             },
-            checkFile(filename) {
+            checkFile(file) {
                 let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
 
-                if (!reg.test(filename.replace(/\s+/g, '').replace('.', ''))) {
+                if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
                     Notice.warning({
                         title: '文件名包含特殊字符',
-                        desc: '请修改' + filename + '文件名',
+                        desc: '请修改' + file.name + '文件名',
                     });
 
                     Notice.info({
@@ -761,17 +759,15 @@
 
                 axios.post(this.urls.check, form).then(res => {
                     if (res.data.status === 200) {
-                        return true;
+                        this.uploadFiles(file);
                     } else {
                         Notice.warning({
                             title: res.data.msg,
-                            desc: '请修改' + filename + '文件名'
+                            desc: '请修改' + file.name + '文件名'
                         });
-                        return false;
                     }
                 }).catch(error => {
                     console.error(error);
-                    return false;
                 });
             },
             uploadFiles(file) {
