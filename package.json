@@ -1,7 +1,7 @@
 {
   "name": "xayah",
   "description": "类 CKFinder 通用文件管理器",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "author": "TELstatic <telstatic@gmail.com>",
   "license": "MIT",
   "private": false,
