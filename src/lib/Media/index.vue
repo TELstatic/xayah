@@ -18,7 +18,7 @@
             </div>
         </div>
         <Modal
-                v-model="visable"
+                v-model="visible"
                 width="1200"
                 :transfer="true"
                 title="媒体库"
@@ -49,6 +49,11 @@
                             :action="urls.upload">
                         <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
                     </Upload>
+
+                    <Button icon="ios-thunderstorm-outline" style="display: none;" type="warning" @click="handleUpload">
+                        云上传
+                    </Button>
+
                     <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
                         Root
                     </Button>
@@ -97,7 +102,7 @@
                             </p>
                         </span>
                         <div class="demo-upload-list-cover2" v-if="item.checked">
-                            <Icon type="ios-trash-outline" @click.native="handleRemove(index)"></Icon>
+                            <Icon type="ios-trash-outline" @click.native="handleUnSelect(index)"></Icon>
                         </div>
                     </div>
                 </Col>
@@ -183,6 +188,94 @@
                 </Button>
             </div>
         </Modal>
+
+        <Modal
+                width="1000"
+                v-model="visible4"
+                :transfer="true"
+                @on-ok=""
+                @on-cancel="">
+            <p slot="header">
+                云上传
+                <Tooltip content="远程异步上传图片,请确保文件唯一且有效" placement="right">
+                    <Icon type="ios-help-circle-outline"></Icon>
+                </Tooltip>
+            </p>
+            <Form :model="cloud.form" :rules="cloud.rules" ref="cloud"
+                  @keydown.native.enter.prevent="handleSubmit">
+                <div>
+                    <Row>
+                        <Col span="24">
+                            <FormItem style="height: 10px;" label="图片列表">
+                                <Row :gutter="10">　
+                                    <Col span="6">
+                                        地址
+                                    </Col>
+                                    <Col span="6">
+                                        文件名
+                                    </Col>
+                                    <Col span="4">
+                                        预览
+                                    </Col>
+                                    <Col span="2">
+                                        操作
+                                    </Col>
+                                </Row>
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <FormItem
+                            v-for="(item, index) in cloud.form.items"
+                            :key="index"
+                            :label="'图片 ' + (index+1) "
+                            :prop="'items.' + index"
+                            :rules="cloud.rules.item">
+                        <Row :gutter="10">
+                            <Col span="6">
+                                <Poptip trigger="focus">
+                                    <Input type="text" v-model="item.url" clearable
+                                           placeholder="请输入地址"></Input>
+                                    <div slot="content">{{ formatText(item.url) }}</div>
+                                </Poptip>
+                            </Col>
+                            <Col span="6">
+                                <Poptip trigger="focus">
+                                    <Input type="text" v-model="item.name" clearable
+                                           placeholder="请输入名称"></Input>
+                                    <div slot="content">{{ formatText(item.name) }}</div>
+                                </Poptip>
+                            </Col>
+                            <Col span="4">
+                                <img :src="item.url" width="150" height="150"/>
+                            </Col>
+                            <Col span="2">
+                                <Button :disabled="!index && cloud.form.items.length===1" @click="handleRemove(index)">
+                                    删除
+                                </Button>
+                            </Col>
+                        </Row>
+                    </FormItem>
+                    <FormItem>
+                        <Row>
+                            <Col span="12">
+                                <Button type="dashed" long @click="handleAdd" :disabled="addStatus" icon="plus-round">
+                                    新增图片
+                                </Button>
+                            </Col>
+                        </Row>
+                    </FormItem>
+                </div>
+
+            </Form>
+            <div slot="footer">
+                <Button type="info" @click="handleSubmit" :disabled="uploadStatus">
+                    获取
+                </Button>
+                <Button type="dashed" @click="handleCancel">
+                    取消
+                </Button>
+            </div>
+        </Modal>
     </div>
 </template>
 <script>
@@ -220,7 +313,8 @@
                     policy: '',   //获取上传策略地址
                     delete: '',   //删除文件或目录地址
                     return: '',   //本地回调地址
-                }
+                    remote: '',   //远程下载地址
+                },
             },
             config: {
                 type: Object,
@@ -268,9 +362,10 @@
         },
         data() {
             return {
-                visable: false,
+                visible: false,
                 visible2: false,
                 visible3: false,
+                visible4: false,
                 fileList: [],
                 currentValue: this.value,
                 query: {
@@ -281,7 +376,38 @@
                 },
                 form: {
                     name: null,
-                    pid: null
+                    pid: null,
+                },
+                cloud: {
+                    form: {
+                        pid: null,
+                        items: [
+                            {
+                                name: null,
+                                url: null,
+                            },
+                        ],
+                    },
+                    rules: {
+                        item: {
+                            required: true,
+                            type: 'object',
+                            fields: {
+                                url: {
+                                    type: 'url',
+                                    required: true,
+                                    pattern: new RegExp('/^https.?:\\/\\/(([a-zA-Z0-9_-])+(\\.)?)*(:\\d+)?(\\/((\\.)?(\\?)?=?&?[a-zA-Z0-9_-](\\?)?)*)*$/i'),
+                                    message: '请输入正确的图片地址',
+                                },
+                                name: {
+                                    type: 'string',
+                                    pattern: /^[\u4E00-\u9FA5AA-Za-z0-9_-]+\.[A-Za-z0-9]+$/,
+                                    required: true,
+                                    message: '请输入正确的图片名称',
+                                },
+                            }
+                        },
+                    },
                 },
                 rules: {
                     name: [
@@ -334,6 +460,15 @@
                 }).length;
                 return !res;
             },
+            uploadStatus() {
+                let res = _.filter(this.cloud.form.items, function (o) {
+                    return o.url;
+                }).length;
+                return !res;
+            },
+            addStatus() {
+                return !(this.cloud.form.items.length < 5);
+            },
             images() {
                 return this.formatValue();
             }
@@ -341,6 +476,16 @@
         watch: {
             value(val) {
                 this.currentValue = this.value;
+            },
+            cloud: {
+                deep: true,
+                handler(newValue, oldValue) {
+                    newValue.form.items.forEach(function (item) {
+                        if (!item.name && item.url) {
+                            item.name = item.url.replace(/(.*\/)*([^.]+).*/ig, "$2") + '.' + item.url.replace(/.+\./, "");
+                        }
+                    });
+                }
             }
         },
         mounted() {
@@ -349,6 +494,12 @@
             }
         },
         methods: {
+            formatText(val) {
+                if (!val) {
+                    return 'Enter value';
+                }
+                return val;
+            },
             formatCallback(files) {
                 switch (this.type) {
                     default:
@@ -414,9 +565,10 @@
                 return url + this.config.style;
             },
             handleOpen() {
-                this.visable = true;
+                this.visible = true;
                 this.getFiles();
             },
+
             getFiles() {
                 let that = this;
 
@@ -445,8 +597,17 @@
                     this.currentFile = this.fileList[index];
                 }, 300);
             },
-            handleRemove(index) {
+            handleUnSelect(index) {
                 this.fileList[index]['checked'] = false;
+            },
+            handleAdd() {
+                this.cloud.form.items.push({
+                    name: null,
+                    url: null,
+                });
+            },
+            handleRemove(index) {
+                this.cloud.form.items.splice(index, 1);
             },
             handleSlice(index) {
                 switch (Object.prototype.toString.call(this.currentValue)) {
@@ -519,9 +680,48 @@
                 if (this.config.random) {
                     this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
                 } else {
-                    this.checkFile(file);
+                    if (this.checkFile(file.name)) {
+                        this.uploadFiles(file);
+                    }
+
                     return false;
                 }
+            },
+            handleUpload() {
+                this.visible4 = true;
+                this.cloud.form.pid = this.form.pid;
+            },
+            handleSubmit() {
+                let that = this;
+                this.$refs.cloud.validate((valid) => {
+                    if (valid) {
+                        // that.headers.key = this.parentFolder.path + '/' + item.name;
+
+                        axios.post(this.urls.remote, this.cloud).then(res => {
+                            if (res.data.status === 200) {
+                                Notice.success({
+                                    title: res.data.title,
+                                    desc: res.data.msg,
+                                });
+                            } else {
+                                Notice.error({
+                                    title: '文件上传失败',
+                                    desc: '',
+                                });
+                            }
+                        }).catch(error => {
+                            console.error(error);
+                        });
+                    } else {
+                        Notice.warning({
+                            title: '表单参数有误',
+                            desc: '请检查'
+                        });
+                    }
+                });
+            },
+            handleCancel() {
+                this.visible4 = false;
             },
             handleCloseReview() {
                 this.visible2 = false;
@@ -529,13 +729,13 @@
             handleCloseFolder() {
                 this.visible3 = false;
             },
-            checkFile(file) {
+            checkFile(filename) {
                 let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
 
-                if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
+                if (!reg.test(filename.replace(/\s+/g, '').replace('.', ''))) {
                     Notice.warning({
                         title: '文件名包含特殊字符',
-                        desc: '请修改' + file.name + '文件名',
+                        desc: '请修改' + filename + '文件名',
                     });
 
                     Notice.info({
@@ -548,19 +748,21 @@
                 }
 
                 let form = {};
-                form.path = this.parentFolder.path + '/' + file.name;
+                form.path = this.parentFolder.path + '/' + filename;
 
                 axios.post(this.urls.check, form).then(res => {
                     if (res.data.status === 200) {
-                        this.uploadFiles(file);
+                        return true;
                     } else {
                         Notice.warning({
                             title: res.data.msg,
-                            desc: '请修改' + file.name + '文件名'
+                            desc: '请修改' + filename + '文件名'
                         });
+                        return false;
                     }
                 }).catch(error => {
                     console.error(error);
+                    return false;
                 });
             },
             uploadFiles(file) {
@@ -679,7 +881,7 @@
                 this.dispatch('FormItem', 'on-form-change', res);
 
                 this.order = 0;
-                this.visable = false;
+                this.visible = false;
                 this.handleReset();
             },
             pageChange(val) {
