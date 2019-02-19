@@ -238,7 +238,7 @@
                 };
             },
             formatText(val) {
-                if (!this.val) {
+                if (!val) {
                     return 'Enter value';
                 }
                 return val;
