@@ -594,6 +594,8 @@
             },
             handleOpenFolder(folder) {
                 clearTimeout(time);
+
+                this.query.page = 1;
                 this.query.pid = folder[this.config.key];
                 this.currentFolder = folder;
                 this.getFiles();
