@@ -74,6 +74,16 @@
                             :disabled="!parentFolder.pid">
                         返回
                     </Button>
+
+                    <span style="float: right;">
+                        <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
+                            <span slot="open">智能</span>
+                            <span slot="close">默认</span>
+                        </i-switch>
+                        <Tooltip title="插入顺序" content="默认为鼠标点击顺序,智能为选择文件名排序" placement="right">
+                            <Icon type="ios-help-circle-outline"/>
+                        </Tooltip>
+                    </span>
                 </Col>
             </Row>
             <Divider/>
@@ -409,6 +419,7 @@
                         },
                     },
                 },
+                isSmartSort: false,
                 rules: {
                     name: [
                         {
@@ -575,8 +586,14 @@
             },
             handleOpen() {
                 this.visible = true;
+
+                this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
+
                 this.uploadList = [];
                 this.getFiles();
+            },
+            handleSmartSortChange(val) {
+                localStorage.setItem('isSmartSort', val ? 1 : 0);
             },
             getFiles() {
                 let that = this;
@@ -884,6 +901,12 @@
 
                     files.push(obj);
                 });
+
+                if (this.isSmartSort) {
+                    files = _.sortBy(files, [function (o) {
+                        return o.url;
+                    }]);
+                }
 
                 if (files.length > this.max) {
                     let msg = '图片最多选择' + this.max + '张,多选部分将被舍弃';
