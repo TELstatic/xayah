@@ -74,6 +74,16 @@
                             :disabled="!parentFolder.pid">
                         返回
                     </Button>
+
+                    <span style="float: right;">
+                        <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
+                            <span slot="open">智能</span>
+                            <span slot="close">默认</span>
+                        </i-switch>
+                        <Tooltip title="插入顺序" content="默认为鼠标点击顺序,智能为选择文件名排序" placement="right">
+                            <Icon type="ios-help-circle-outline"/>
+                        </Tooltip>
+                    </span>
                 </Col>
             </Row>
             <Divider/>
@@ -409,6 +419,7 @@
                         },
                     },
                 },
+                isSmartSort: false,
                 rules: {
                     name: [
                         {
@@ -429,7 +440,8 @@
                 ],
                 currentFolder: null,
                 parentFolder: {
-                    pid: null
+                    pid: null,
+                    path: '/',
                 },
                 currentFile: {
                     path: null,
@@ -443,7 +455,7 @@
                     url: null
                 },
                 headers: {},
-                uploadFile: [],
+                uploadList: [],
                 order: 0
             }
         },
@@ -458,7 +470,8 @@
                 let res = _.filter(this.fileList, function (o) {
                     return o.checked && o.type === "file";
                 }).length;
-                return !res;
+
+                return !res && !this.uploadList.length;
             },
             uploadStatus() {
                 let res = _.filter(this.cloud.form.items, function (o) {
@@ -499,6 +512,13 @@
                     return 'Enter value';
                 }
                 return val;
+            },
+            formatUrl(url) {
+                if (url.charAt(url.length - 1) === '/') {
+                    return url.substr(0, url.length - 1);
+                }
+
+                return url;
             },
             formatCallback(files) {
                 switch (this.type) {
@@ -566,9 +586,15 @@
             },
             handleOpen() {
                 this.visible = true;
+
+                this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
+
+                this.uploadList = [];
                 this.getFiles();
             },
-
+            handleSmartSortChange(val) {
+                localStorage.setItem('isSmartSort', val ? 1 : 0);
+            },
             getFiles() {
                 let that = this;
 
@@ -585,6 +611,8 @@
             },
             handleOpenFolder(folder) {
                 clearTimeout(time);
+
+                this.query.page = 1;
                 this.query.pid = folder[this.config.key];
                 this.currentFolder = folder;
                 this.getFiles();
@@ -680,9 +708,7 @@
                 if (this.config.random) {
                     this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
                 } else {
-                    if (this.checkFile(file.name)) {
-                        this.uploadFiles(file);
-                    }
+                    this.checkFile(file);
 
                     return false;
                 }
@@ -729,13 +755,13 @@
             handleCloseFolder() {
                 this.visible3 = false;
             },
-            checkFile(filename) {
+            checkFile(file) {
                 let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
 
-                if (!reg.test(filename.replace(/\s+/g, '').replace('.', ''))) {
+                if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
                     Notice.warning({
                         title: '文件名包含特殊字符',
-                        desc: '请修改' + filename + '文件名',
+                        desc: '请修改' + file.name + '文件名',
                     });
 
                     Notice.info({
@@ -748,21 +774,19 @@
                 }
 
                 let form = {};
-                form.path = this.parentFolder.path + '/' + filename;
+                form.path = this.parentFolder.path + '/' + file.name;
 
                 axios.post(this.urls.check, form).then(res => {
                     if (res.data.status === 200) {
-                        return true;
+                        this.uploadFiles(file);
                     } else {
                         Notice.warning({
                             title: res.data.msg,
-                            desc: '请修改' + filename + '文件名'
+                            desc: '请修改' + file.name + '文件名'
                         });
-                        return false;
                     }
                 }).catch(error => {
                     console.error(error);
-                    return false;
                 });
             },
             uploadFiles(file) {
@@ -800,6 +824,13 @@
             },
             success(res, file, fileList) {
                 let that = this;
+
+                this.uploadList.push({
+                    type: 'file',
+                    checked: true,
+                    url: this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name,
+                });
+
                 if (!!this.urls.return) {
                     let form = {};
                     form.filename = this.parentFolder.path + '/' + file.name;
@@ -857,12 +888,25 @@
 
                 let files = [];
 
+                this.uploadList.forEach(function (current, index) {
+                    let obj = {};
+                    obj.url = current.url;
+
+                    files.push(obj);
+                });
+
                 items.forEach(function (current, index) {
                     let obj = {};
                     obj.url = items[index].url;
 
-                    files.push(obj)
+                    files.push(obj);
                 });
+
+                if (this.isSmartSort) {
+                    files = _.sortBy(files, [function (o) {
+                        return o.url;
+                    }]);
+                }
 
                 if (files.length > this.max) {
                     let msg = '图片最多选择' + this.max + '张,多选部分将被舍弃';
