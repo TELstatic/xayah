@@ -50,7 +50,7 @@
                         <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
                     </Upload>
 
-                    <Button icon="ios-thunderstorm-outline" style="display: none;" type="warning" @click="handleUpload">
+                    <Button icon="ios-thunderstorm-outline" type="info" style="display: none;" @click="handleUpload">
                         云上传
                     </Button>
 
@@ -70,10 +70,14 @@
                     <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
                         重置
                     </Button>
+
                     <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
                             :disabled="!parentFolder.pid">
                         返回
                     </Button>
+
+                    <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
+                           placeholder="请输入关键词查找"/>
 
                     <span style="float: right;">
                         <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
@@ -206,7 +210,7 @@
                 @on-ok=""
                 @on-cancel="">
             <p slot="header">
-                云上传
+                异步上传
                 <Tooltip content="远程异步上传图片,请确保文件唯一且有效" placement="right">
                     <Icon type="ios-help-circle-outline"></Icon>
                 </Tooltip>
@@ -382,7 +386,8 @@
                     pid: null,
                     page: 1,
                     per_page: 50,
-                    total: 0
+                    total: 0,
+                    keyword: null,
                 },
                 form: {
                     name: null,
@@ -940,6 +945,12 @@
             handleBack() {
                 this.query.pid = this.parentFolder.pid;
                 this.query.page = 1;
+                this.getFiles();
+            },
+            handleSearch() {
+                this.query.pid = null;
+                this.query.page = 1;
+
                 this.getFiles();
             },
             handleHome() {
