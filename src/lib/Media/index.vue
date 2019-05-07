@@ -619,6 +619,9 @@
 
                 this.query.page = 1;
                 this.query.pid = folder[this.config.key];
+
+                this.query.keyword = null;
+
                 this.currentFolder = folder;
                 this.getFiles();
             },
