@@ -149,7 +149,8 @@
                     check: null,    //检查文件唯一
                     policy: null,   //获取上传策略地址
                     delete: null,   //删除文件或目录地址
-                    return: null,   //本地回调地址
+                    return: null,   //本地回调地址,
+                    remote:null,
                 },
                 config: {
                     format: [

@@ -33,6 +33,7 @@
             <Row>
                 <Col span="24">
                     <Upload
+                            v-if="urls.upload"
                             ref="upload"
                             style="display: inline;"
                             :format="config.format"
@@ -50,7 +51,7 @@
                         <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
                     </Upload>
 
-                    <Button icon="ios-thunderstorm-outline" type="info" style="display: none;" @click="handleUpload">
+                    <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
                         云上传
                     </Button>
 
@@ -61,6 +62,7 @@
                         刷新
                     </Button>
                     <Poptip
+                            v-if="urls.delete"
                             confirm
                             title="此操作将删除所选文件和目录,确定继续?"
                             @on-ok="handleDelete"
@@ -93,7 +95,7 @@
             <Divider/>
             <Row>
                 <Col span="18" style="min-height: 500px;">
-                    <div class="demo-upload-list1" @click="handleAddFolder">
+                    <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create">
                         <Icon type="ios-add" size="60" style="margin-top: 20%"></Icon>
                     </div>
                     <div class="demo-upload-list1" v-for="(item,index) in fileList">
@@ -485,7 +487,7 @@
                 return !res;
             },
             addStatus() {
-                return !(this.cloud.form.items.length < 5);
+                return !(this.cloud.form.items.length < 10);
             },
             images() {
                 return this.formatValue();
@@ -687,6 +689,7 @@
             },
             clear() {
                 this.form.name = null;
+
                 this.currentFile = {
                     path: null,
                     name: null,
@@ -694,7 +697,17 @@
                     width: 0,
                     height: 0,
                     created_at: null
-                }
+                };
+
+                this.cloud.form = {
+                    pid: null,
+                    items: [
+                        {
+                            name: null,
+                            url: null,
+                        },
+                    ],
+                };
             },
             handleReview(val) {
                 this.visible2 = true;
@@ -726,21 +739,21 @@
                 this.cloud.form.pid = this.form.pid;
             },
             handleSubmit() {
-                let that = this;
                 this.$refs.cloud.validate((valid) => {
                     if (valid) {
-                        // that.headers.key = this.parentFolder.path + '/' + item.name;
-
-                        axios.post(this.urls.remote, this.cloud).then(res => {
+                        axios.post(this.urls.remote, this.cloud.form).then(res => {
                             if (res.data.status === 200) {
                                 Notice.success({
-                                    title: res.data.title,
-                                    desc: res.data.msg,
+                                    title: '文件上传成功',
+                                    desc: '',
                                 });
+
+                                this.visible4 = false;
+                                this.getFiles();
                             } else {
                                 Notice.error({
                                     title: '文件上传失败',
-                                    desc: '',
+                                    desc: res.data.msg,
                                 });
                             }
                         }).catch(error => {
