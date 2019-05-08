@@ -147,10 +147,10 @@
                     upload: '//delii.oss-cn-shanghai.aliyuncs.com/',   //上传地址
                     create: null,   //创建目录地址
                     check: null,    //检查文件唯一
-                    policy: null,   //获取上传策略地址
+                    policy: '1',   //获取上传策略地址
                     delete: null,   //删除文件或目录地址
                     return: null,   //本地回调地址,
-                    remote:null,
+                    remote: null,
                 },
                 config: {
                     format: [
@@ -159,7 +159,8 @@
                     size: 0,        //上传大小限制
                     random: false,  //是否启用随机文件名
                     key: 'id',
-                    style: ''
+                    style: '',
+                    gateway: 'oss',
                 },
                 rules: {
                     title: {

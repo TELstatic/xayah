@@ -22,8 +22,7 @@
                 width="1200"
                 :transfer="true"
                 title="媒体库"
-                @on-ok=""
-                @on-cancel="">
+                id="xayah">
             <p slot="header">
                 媒体库
                 <Tooltip content="目录双击进入或按住 Ctrl 单击进入" placement="right">
@@ -297,6 +296,8 @@
 <script>
     let time = null;
 
+    import $ from 'jquery';
+
     import {Notice} from 'iview';
 
     function oneOf(value, validList) {
@@ -512,8 +513,33 @@
             if (this.urls.policy) {
                 this.checkPolicy();
             }
+
+            this.initPaste();
         },
         methods: {
+            initPaste() {
+                let that = this;
+
+                $("#xayah").on('paste', function (event) {
+                    let fileList = $.map(event.originalEvent.clipboardData.items, function (o) {
+                        if (!new RegExp(/image\/.*/).test(o.type)) {
+                            return;
+                        }
+
+                        return o.getAsFile();
+                    });
+
+                    if (fileList.length <= 0) {
+                        return false;
+                    }
+
+                    for (let i = 0; i < fileList.length; i++) {
+                        that.uploadFiles(fileList[i], true);
+                    }
+
+                    event.preventDefault();
+                });
+            },
             formatText(val) {
                 if (!val) {
                     return 'Enter value';
@@ -727,7 +753,7 @@
             },
             beforeUpload(file) {
                 if (this.config.random) {
-                    this.headers.key = this.parentFolder.path + '/' + Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
+                    this.headers.key = this.parentFolder.path + '/' + this.getRandomName(file);
                 } else {
                     this.checkFile(file);
 
@@ -766,6 +792,9 @@
                         });
                     }
                 });
+            },
+            getRandomName(file) {
+                return Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
             },
             handleCancel() {
                 this.visible4 = false;
@@ -810,8 +839,12 @@
                     console.error(error);
                 });
             },
-            uploadFiles(file) {
-                this.headers.key = this.parentFolder.path + '/' + file.name;
+            uploadFiles(file, isPaste = false) {
+                if (isPaste) {
+                    this.headers.key = this.parentFolder.path + '/' + this.getRandomName(file);
+                } else {
+                    this.headers.key = this.parentFolder.path + '/' + file.name;
+                }
 
                 this.$refs.upload.post(file);
             },
@@ -819,6 +852,8 @@
                 let that = this;
                 if (localStorage.getItem(that.config.gateway + '_policy')) {
                     let policy = JSON.parse(localStorage.getItem(that.config.gateway + '_policy'));
+
+                    console.log(policy);
 
                     if (moment().isBefore(moment(policy.expire_at))) {
                         that.headers = policy.value;

@@ -29,7 +29,8 @@
     "iview": "^3.4.1",
     "lodash": "^4.17.4",
     "moment": "^2.22.1",
-    "axios": "^0.17"
+    "axios": "^0.17",
+    "jquery": "^3.4.1"
   },
   "browserslist": [
     "> 1%",
