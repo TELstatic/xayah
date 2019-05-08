@@ -157,7 +157,7 @@
                         'jpg', 'png', 'jpeg'
                     ],     //上传类型限制
                     size: 0,        //上传大小限制
-                    random: false,  //是否启用随机文件名
+                    random: true,  //是否启用随机文件名
                     key: 'id',
                     style: '',
                     gateway: 'oss',

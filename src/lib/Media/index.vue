@@ -29,58 +29,59 @@
                     <Icon type="ios-help-circle-outline"></Icon>
                 </Tooltip>
             </p>
-            <Row>
-                <Col span="24">
-                    <Upload
-                            v-if="urls.upload"
-                            ref="upload"
-                            style="display: inline;"
-                            :format="config.format"
-                            :max-size="config.size"
-                            :data="headers"
-                            multiple
-                            :on-format-error="handleFormatError"
-                            :on-exceeded-size="handleMaxSize"
-                            :before-upload="beforeUpload"
-                            :show-upload-list="false"
-                            :on-success="success"
-                            :on-remove="remove"
-                            :on-error="error"
-                            :action="urls.upload">
-                        <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
-                    </Upload>
+            <div @paste="handlePaste">
+                <Row>
+                    <Col span="24">
+                        <Upload
+                                v-if="urls.upload"
+                                ref="upload"
+                                style="display: inline;"
+                                :format="config.format"
+                                :max-size="config.size"
+                                :data="headers"
+                                multiple
+                                :on-format-error="handleFormatError"
+                                :on-exceeded-size="handleMaxSize"
+                                :before-upload="beforeUpload"
+                                :show-upload-list="false"
+                                :on-success="success"
+                                :on-remove="remove"
+                                :on-error="error"
+                                :action="urls.upload">
+                            <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
+                        </Upload>
 
-                    <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
-                        云上传
-                    </Button>
+                        <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
+                            云上传
+                        </Button>
 
-                    <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
-                        Root
-                    </Button>
-                    <Button icon="ios-refresh" @click="handleReload">
-                        刷新
-                    </Button>
-                    <Poptip
-                            v-if="urls.delete"
-                            confirm
-                            title="此操作将删除所选文件和目录,确定继续?"
-                            @on-ok="handleDelete"
-                            @on-cancel="">
-                        <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
-                    </Poptip>
-                    <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
-                        重置
-                    </Button>
+                        <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
+                            Root
+                        </Button>
+                        <Button icon="ios-refresh" @click="handleReload">
+                            刷新
+                        </Button>
+                        <Poptip
+                                v-if="urls.delete"
+                                confirm
+                                title="此操作将删除所选文件和目录,确定继续?"
+                                @on-ok="handleDelete"
+                                @on-cancel="">
+                            <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
+                        </Poptip>
+                        <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
+                            重置
+                        </Button>
 
-                    <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
-                            :disabled="!parentFolder.pid">
-                        返回
-                    </Button>
+                        <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
+                                :disabled="!parentFolder.pid">
+                            返回
+                        </Button>
 
-                    <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
-                           placeholder="请输入关键词查找"/>
+                        <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
+                               placeholder="请输入关键词查找"/>
 
-                    <span style="float: right;">
+                        <span style="float: right;">
                         <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
                             <span slot="open">智能</span>
                             <span slot="close">默认</span>
@@ -89,15 +90,15 @@
                             <Icon type="ios-help-circle-outline"/>
                         </Tooltip>
                     </span>
-                </Col>
-            </Row>
-            <Divider/>
-            <Row>
-                <Col span="18" style="min-height: 500px;">
-                    <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create">
-                        <Icon type="ios-add" size="60" style="margin-top: 20%"></Icon>
-                    </div>
-                    <div class="demo-upload-list1" v-for="(item,index) in fileList">
+                    </Col>
+                </Row>
+                <Divider/>
+                <Row>
+                    <Col span="18" style="min-height: 500px;">
+                        <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create">
+                            <Icon type="ios-add" size="60" style="margin-top: 20%"></Icon>
+                        </div>
+                        <div class="demo-upload-list1" v-for="(item,index) in fileList">
                         <span v-if="item.size">
                             <img :src="formatImage(item.url)"
                                  @click="handleSelect(index)"/>
@@ -105,10 +106,10 @@
                                 {{item.name}}
                             </p>
                         </span>
-                        <span v-else
-                              @click="handleSelect(index)"
-                              @click.ctrl="handleOpenFolder(item)"
-                              @dblclick="handleOpenFolder(item)">
+                            <span v-else
+                                  @click="handleSelect(index)"
+                                  @click.ctrl="handleOpenFolder(item)"
+                                  @dblclick="handleOpenFolder(item)">
                             <Icon type="ios-folder-open"
                                   size="60" style="margin-top: 10%"
                             ></Icon>
@@ -116,62 +117,63 @@
                                 {{item.name}}
                             </p>
                         </span>
-                        <div class="demo-upload-list-cover2" v-if="item.checked">
-                            <Icon type="ios-trash-outline" @click.native="handleUnSelect(index)"></Icon>
+                            <div class="demo-upload-list-cover2" v-if="item.checked">
+                                <Icon type="ios-trash-outline" @click.native="handleUnSelect(index)"></Icon>
+                            </div>
                         </div>
-                    </div>
-                </Col>
-                <Col span="6">
-                    <Card style="width:300px;" v-if="!!currentFile.url">
-                        <p slot="title">
-                            <Icon type="ios-film-outline"></Icon>
-                            附件信息
-                        </p>
-                        <ul>
-                            <li>
+                    </Col>
+                    <Col span="6">
+                        <Card style="width:300px;" v-if="!!currentFile.url">
+                            <p slot="title">
+                                <Icon type="ios-film-outline"></Icon>
+                                附件信息
+                            </p>
+                            <ul>
+                                <li>
                                 <span>
                                     <img :src="currentFile.url" style="width: 200px;height: 200px;"/>
                                 </span>
-                            </li>
-                            <li>
-                                <a href="javascript:;">名称</a>
-                                <span style="white-space:nowrap;overflow: hidden;text-overflow:ellipsis;word-break: break-all">
+                                </li>
+                                <li>
+                                    <a href="javascript:;">名称</a>
+                                    <span style="white-space:nowrap;overflow: hidden;text-overflow:ellipsis;word-break: break-all">
                                     {{currentFile.name}}
                                 </span>
-                            </li>
-                            <li>
-                                <a href="javascript:;">日期</a>
-                                <span>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">日期</a>
+                                    <span>
                                     {{currentFile.created_at}}
                                 </span>
-                            </li>
-                            <li>
-                                <a href="javascript:;">大小</a>
-                                <span>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">大小</a>
+                                    <span>
                                     {{currentFile.size}} KB
                                 </span>
-                            </li>
-                            <li>
-                                <a href="javascript:;">尺寸</a>
-                                <span>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">尺寸</a>
+                                    <span>
                                    {{currentFile.width}} × {{currentFile.height}}
                                 </span>
-                            </li>
-                        </ul>
-                    </Card>
-                </Col>
-            </Row>
-            <Page
-                    :total="query.total"
-                    show-total
-                    show-elevator
-                    show-sizer
-                    :transfer="false"
-                    :page-size="50"
-                    :page-size-opts="pageSizeOpts"
-                    @on-change="pageChange"
-                    @on-page-size-change="pageSizeChange"
-            ></Page>
+                                </li>
+                            </ul>
+                        </Card>
+                    </Col>
+                </Row>
+                <Page
+                        :total="query.total"
+                        show-total
+                        show-elevator
+                        show-sizer
+                        :transfer="false"
+                        :page-size="50"
+                        :page-size-opts="pageSizeOpts"
+                        @on-change="pageChange"
+                        @on-page-size-change="pageSizeChange"
+                ></Page>
+            </div>
             <div slot="footer">
                 <Button type="info" :disabled="insertStatus" @click="insertImages">插入图片</Button>
             </div>
@@ -296,8 +298,7 @@
 <script>
     let time = null;
 
-    import $ from 'jquery';
-
+    import _ from 'lodash';
     import {Notice} from 'iview';
 
     function oneOf(value, validList) {
@@ -464,7 +465,7 @@
                 },
                 headers: {},
                 uploadList: [],
-                order: 0
+                order: 0,
             }
         },
         computed: {
@@ -472,6 +473,7 @@
                 let res = _.filter(this.fileList, function (o) {
                     return o.checked;
                 }).length;
+
                 return !res;
             },
             insertStatus() {
@@ -485,6 +487,7 @@
                 let res = _.filter(this.cloud.form.items, function (o) {
                     return o.url;
                 }).length;
+
                 return !res;
             },
             addStatus() {
@@ -513,31 +516,15 @@
             if (this.urls.policy) {
                 this.checkPolicy();
             }
-
-            this.initPaste();
         },
         methods: {
-            initPaste() {
-                let that = this;
+            handlePaste(e) {
+                let files = Array.prototype.slice.call(e.clipboardData.files);
 
-                $("#xayah").on('paste', function (event) {
-                    let fileList = $.map(event.originalEvent.clipboardData.items, function (o) {
-                        if (!new RegExp(/image\/.*/).test(o.type)) {
-                            return;
-                        }
+                if (!files.length) return;
 
-                        return o.getAsFile();
-                    });
-
-                    if (fileList.length <= 0) {
-                        return false;
-                    }
-
-                    for (let i = 0; i < fileList.length; i++) {
-                        that.uploadFiles(fileList[i], true);
-                    }
-
-                    event.preventDefault();
+                files.forEach(file => {
+                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
                 });
             },
             formatText(val) {
@@ -753,7 +740,13 @@
             },
             beforeUpload(file) {
                 if (this.config.random) {
-                    this.headers.key = this.parentFolder.path + '/' + this.getRandomName(file);
+                    let filename = this.getRandomName(file);
+
+                    this.headers.key = this.parentFolder.path + '/' + filename;
+
+                    this.uploadFiles(new File([file], filename, {type: file.type}));
+
+                    return false;
                 } else {
                     this.checkFile(file);
 
@@ -839,12 +832,8 @@
                     console.error(error);
                 });
             },
-            uploadFiles(file, isPaste = false) {
-                if (isPaste) {
-                    this.headers.key = this.parentFolder.path + '/' + this.getRandomName(file);
-                } else {
-                    this.headers.key = this.parentFolder.path + '/' + file.name;
-                }
+            uploadFiles(file) {
+                this.headers.key = this.parentFolder.path + '/' + file.name;
 
                 this.$refs.upload.post(file);
             },
@@ -852,8 +841,6 @@
                 let that = this;
                 if (localStorage.getItem(that.config.gateway + '_policy')) {
                     let policy = JSON.parse(localStorage.getItem(that.config.gateway + '_policy'));
-
-                    console.log(policy);
 
                     if (moment().isBefore(moment(policy.expire_at))) {
                         that.headers = policy.value;
