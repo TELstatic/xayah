@@ -632,7 +632,7 @@
 
                 this.clear();
 
-                if (!urls.index) {
+                if (!this.urls.index) {
                     return false;
                 }
 
