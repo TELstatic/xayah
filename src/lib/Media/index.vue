@@ -55,31 +55,33 @@
                             云上传
                         </Button>
 
-                        <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
-                            Root
-                        </Button>
-                        <Button icon="ios-refresh" @click="handleReload">
-                            刷新
-                        </Button>
-                        <Poptip
-                                v-if="urls.delete"
-                                confirm
-                                title="此操作将删除所选文件和目录,确定继续?"
-                                @on-ok="handleDelete"
-                                @on-cancel="">
-                            <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
-                        </Poptip>
-                        <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
-                            重置
-                        </Button>
+                        <div v-if="urls.index" style="display: inline;">
+                            <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
+                                Root
+                            </Button>
+                            <Button icon="ios-refresh" @click="handleReload">
+                                刷新
+                            </Button>
+                            <Poptip
+                                    v-if="urls.delete"
+                                    confirm
+                                    title="此操作将删除所选文件和目录,确定继续?"
+                                    @on-ok="handleDelete"
+                                    @on-cancel="">
+                                <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
+                            </Poptip>
+                            <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
+                                重置
+                            </Button>
 
-                        <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
-                                :disabled="!parentFolder.pid">
-                            返回
-                        </Button>
+                            <Button icon="ios-arrow-round-back" size="default" @click="handleBack"
+                                    :disabled="!parentFolder.pid">
+                                返回
+                            </Button>
 
-                        <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
-                               placeholder="请输入关键词查找"/>
+                            <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
+                                   placeholder="请输入关键词查找"/>
+                        </div>
 
                         <span style="float: right;">
                         <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
@@ -362,7 +364,7 @@
                 },
                 default: 'object'
             },
-            simple: {
+            simple: {   //简单上传模式
                 type: Boolean,
                 default: false,
             },
@@ -454,7 +456,7 @@
                 currentFolder: null,
                 parentFolder: {
                     pid: null,
-                    path: '/',
+                    path: 'xayah',
                 },
                 currentFile: {
                     path: null,
@@ -629,6 +631,10 @@
                 let that = this;
 
                 this.clear();
+
+                if (!urls.index) {
+                    return false;
+                }
 
                 axios.get(this.urls.index, {params: this.query}).then(function (res) {
                     that.fileList = res.data.children.data;

@@ -8,7 +8,7 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
-                         :simple="true"
+                         :simple="false"
                          @callback="callback"
                          :config="config">
                 </x-media>
@@ -88,7 +88,7 @@
                                      :urls="urls"
                                      :max="1"
                                      type="string"
-                                     :simple="true"
+                                     :simple="false"
                                      :config="config">
                             </x-media>
                         </Col>
