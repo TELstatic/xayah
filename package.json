@@ -29,8 +29,7 @@
     "iview": "^3.4.1",
     "lodash": "^4.17.4",
     "moment": "^2.22.1",
-    "axios": "^0.17",
-    "jquery": "^3.4.1"
+    "axios": "^0.17"
   },
   "browserslist": [
     "> 1%",
@@ -48,6 +47,6 @@
     "vue-loader": "^13.0.5",
     "vue-template-compiler": "^2.4.4",
     "webpack": "^3.6.0",
-    "webpack-dev-server": "^2.9.1"
+    "webpack-dev-server": ">=3.1.11"
   }
 }

@@ -8,6 +8,8 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
+                         :simple="true"
+                         @callback="callback"
                          :config="config">
                 </x-media>
             </FormItem>
@@ -86,6 +88,7 @@
                                      :urls="urls"
                                      :max="1"
                                      type="string"
+                                     :simple="true"
                                      :config="config">
                             </x-media>
                         </Col>

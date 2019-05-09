@@ -48,7 +48,7 @@
                                 :on-remove="remove"
                                 :on-error="error"
                                 :action="urls.upload">
-                            <Button type="success" icon="ios-cloud-upload-outline">上传</Button>
+                            <Button type="success" icon="ios-cloud-upload-outline" id="upload">上传</Button>
                         </Upload>
 
                         <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
@@ -318,7 +318,7 @@
         name: 'xayah',
         mixins: [Emitter],
         components: {
-            Notice
+            Notice,
         },
         props: {
             urls: {
@@ -344,16 +344,16 @@
                     ],
                     style: '',
                     key: 'id',
-                    gateway: 'oss'
-                }
+                    gateway: 'oss',
+                },
             },
             id: {       //dom ID
                 type: String,
-                default: ''
+                default: '',
             },
             max: {      //插入图片限制
                 type: Number,
-                default: 1
+                default: 1,
             },
             type: {
                 type: String,
@@ -362,14 +362,18 @@
                 },
                 default: 'object'
             },
+            simple: {
+                type: Boolean,
+                default: false,
+            },
             value: {
-                default: ""
+                default: "",
             },
             formatImages: {
                 type: Function,
                 default: function () {
                     return this.formatValue();
-                }
+                },
             },
             formatReturn: {
                 type: Function,
@@ -605,12 +609,18 @@
                 return url + this.config.style;
             },
             handleOpen() {
-                this.visible = true;
+                if (this.simple) {
+                    this.$refs.upload.fileList = [];
 
-                this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
+                    document.getElementById('upload').click();
+                } else {
+                    this.visible = true;
 
-                this.uploadList = [];
-                this.getFiles();
+                    this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
+
+                    this.uploadList = [];
+                    this.getFiles();
+                }
             },
             handleSmartSortChange(val) {
                 localStorage.setItem('isSmartSort', val ? 1 : 0);
@@ -739,12 +749,14 @@
                 });
             },
             beforeUpload(file) {
+                if (this.simple) {
+                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
+
+                    return false;
+                }
+
                 if (this.config.random) {
-                    let filename = this.getRandomName(file);
-
-                    this.headers.key = this.parentFolder.path + '/' + filename;
-
-                    this.uploadFiles(new File([file], filename, {type: file.type}));
+                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
 
                     return false;
                 } else {
@@ -833,7 +845,11 @@
                 });
             },
             uploadFiles(file) {
-                this.headers.key = this.parentFolder.path + '/' + file.name;
+                if (this.simple) {
+                    this.headers.key = file.name;
+                } else {
+                    this.headers.key = this.parentFolder.path + '/' + file.name;
+                }
 
                 this.$refs.upload.post(file);
             },
@@ -865,8 +881,30 @@
                     console.error(error);
                 });
             },
-            success(res, file, fileList) {
+            simpleInsertImages(fileList) {
                 let that = this;
+                let files = [];
+
+                fileList.forEach(function (current, index) {
+                    let obj = {};
+                    obj.url = that.urls.upload + current.name;
+
+                    files.push(obj);
+                });
+
+                let res = this.formatReturn(files);
+
+                this.currentValue = res;
+                this.$emit('input', res);
+                this.$emit('callback', res);
+                this.dispatch('FormItem', 'on-form-change', res);
+            },
+            success(res, file, fileList) {
+                if (this.simple) {
+                    this.simpleInsertImages(fileList);
+
+                    return false;
+                }
 
                 this.uploadList.push({
                     type: 'file',
@@ -881,17 +919,18 @@
 
                     axios.post(this.urls.return, form).then(res => {
                         if (res.data.status === 200) {
-                            that.$Notice.success({
+                            this.$Notice.success({
                                 title: '回调成功',
                                 desc: 'client'
                             });
                         } else {
-                            that.$Notice.error({
+                            this.$Notice.error({
                                 title: '回调失败',
                                 desc: 'client'
                             });
                         }
-                        that.getFiles();
+
+                        this.getFiles();
                     }).catch(error => {
                         console.error(error);
                     });
@@ -901,6 +940,7 @@
                             title: '上传成功',
                             desc: 'server'
                         });
+
                         this.getFiles();
                     } else {
                         Notice.error({
