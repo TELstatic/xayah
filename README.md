@@ -89,7 +89,7 @@
 
  | name       | type   |required  |default|memo  |
  | -------    | ----   |--------  |------|-------|
- | value      | array | true    | []   | 可以使用 v-model 双向绑定数据|
+ | value      | mixed | true    | []   | 可以使用 v-model 双向绑定数据|
  | urls.index      | string | true    | ''   | 获取文件|
  | urls.upload      | string | true    | ''   | 上传地址|
  | urls.create      | string | true    | ''   | 创建目录|
@@ -100,11 +100,12 @@
 | id      | string | false    | null   | Dom ID|
 | max      | int | false    | 1   | 限制插入图片数量|
 | type      | string | false    | 'object'   | 默认返回类型 |
-| config.random      | string | false    | false   | 使用随机文件名|
+| config.random      | bool | false    | false   | 使用随机文件名|
 | config.size      | int | false    | 0   | 限制上传文件大小|
 | config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
 | config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
 | config.key      | string | false    | 'id'   |  兼容 MongoDB |
+| config.folder      | bool | false    | false   |  是否允许上传目录 |
 | config.gateway      | string | false    | 'oss'   | 多网关  |
 | config.formatValue      | function | false    |  详见代码   | 格式化 value 值 |
 | config.formatReturn      | function | false    |  详见代码   | 格式化返回值 |
@@ -121,7 +122,16 @@
     
     2. 版本2.0.6
         修复 数据不同步BUG
-                
+    
+    3. 版本 2.1.0-beta
+        新增目录上传
+        新增文件目录复制移动
+        新增文件权限
+        新增文件目录重命名
+        新增文件拖拽排序
+        优化文件预览
+        优化简单上传
+        优化图片列表                   
         
 <div id="events"></div>
 
@@ -250,4 +260,12 @@
         添加简单上传模式(多个组件下,存在值混乱 BUG)    
     2.0.20-beta
         优化权限控制,修复空父目录上传 BUG            
-    
+    2.1.0-beta
+        新增目录上传
+        新增文件目录复制移动
+        新增文件权限
+        新增文件目录重命名
+        新增文件拖拽排序
+        优化文件预览
+        优化简单上传
+        优化图片列表选中样式

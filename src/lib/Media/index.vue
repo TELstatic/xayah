@@ -1,10 +1,11 @@
 <template>
     <div style="display: inline">
         <div class="demo-upload-list" v-for="(item,index) in images">
-            <img :src="item.url">
-            <div class="demo-upload-list-cover">
-                <Icon type="ios-eye-outline" @click.native="handleReview(item)"></Icon>
-                <Icon type="ios-trash-outline" @click.native="handleSlice(index)"></Icon>
+            <img :src="item.url" @dragstart='drag($event,index)' @drop='drop($event,index)'
+                 @dragover='allowDrop($event,index)' @click="handleDrop">
+            <div class="demo-upload-list-cover" v-bind:class="{ 'demo-active': isActive }" @click="handleDrop">
+                <Icon type="ios-eye-outline" @click.native.stop="handleReview(item)"></Icon>
+                <Icon type="ios-trash-outline" @click.native.stop="handleSlice(index)"></Icon>
             </div>
         </div>
         <div style="display: inline;" v-if="images.length<max">
@@ -23,12 +24,14 @@
                 :transfer="true"
                 title="媒体库"
                 id="xayah">
-            <p slot="header">
-                媒体库
-                <Tooltip content="目录双击进入或按住 Ctrl 单击进入" placement="right">
-                    <Icon type="ios-help-circle-outline"></Icon>
-                </Tooltip>
+            <p slot="close">
+                <Icon type="ios-help-circle-outline"
+                      style="font-size: 20px;color: #999;-webkit-transition: color .2s ease;transition: color .2s ease;position: relative;top: 1px;"
+                      @click.stop="handleHelp">查看帮助
+                </Icon>
+                <Icon type="ios-close"></Icon>
             </p>
+
             <div @paste="handlePaste">
                 <Row>
                     <Col span="24">
@@ -50,6 +53,13 @@
                                 :action="urls.upload">
                             <Button type="success" icon="ios-cloud-upload-outline" id="upload">上传</Button>
                         </Upload>
+
+                        <Button type="success" icon="ios-folder-outline" @click="handleUploadFolder"
+                                v-if="config.folder">目录
+                        </Button>
+
+                        <input type='file' id="uploadFolder" webkitdirectory
+                               style="display: none;"/>
 
                         <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
                             云上传
@@ -79,8 +89,28 @@
                                 返回
                             </Button>
 
+                            <Button icon="ios-copy" size="default" @click="handleCopy" v-if="urls.paste"
+                                    :disabled="buttonStatus">
+                                复制
+                            </Button>
+
+                            <Button icon="ios-cut" size="default" @click="handleCut" v-if="urls.paste"
+                                    :disabled="buttonStatus">
+                                移动
+                            </Button>
+
+                            <ButtonGroup v-if="visible6 && urls.paste">
+                                <Button type="dashed" :disabled="pasteStatus" icon="ios-paper-outline"
+                                        @click="handleStick">
+                                    粘贴 ({{objectList.length}})
+                                </Button>
+                                <Button type="dashed" @click="handleCancel">
+                                    取消
+                                </Button>
+                            </ButtonGroup>
+
                             <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
-                                   placeholder="请输入关键词查找"/>
+                                   placeholder="请输入关键词查找"></Input>
                         </div>
 
                         <span style="float: right;">
@@ -88,44 +118,87 @@
                             <span slot="open">智能</span>
                             <span slot="close">默认</span>
                         </i-switch>
-                        <Tooltip title="插入顺序" content="默认为鼠标点击顺序,智能为选择文件名排序" placement="right">
-                            <Icon type="ios-help-circle-outline"/>
-                        </Tooltip>
                     </span>
                     </Col>
                 </Row>
                 <Divider/>
-                <Row>
+                <Row :gutter="24">
                     <Col span="18" style="min-height: 500px;">
-                        <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create">
-                            <Icon type="ios-add" size="60" style="margin-top: 20%"></Icon>
+                        <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create"
+                             style="overflow: visible ;">
+                            <Icon type="ios-add" size="60" style="margin-top: 20%;"></Icon>
                         </div>
-                        <div class="demo-upload-list1" v-for="(item,index) in fileList">
-                        <span v-if="item.size">
-                            <img :src="formatImage(item.url)"
-                                 @click="handleSelect(index)"/>
-                            <p style="margin-top: -50%">
-                                {{item.name}}
-                            </p>
-                        </span>
-                            <span v-else
-                                  @click="handleSelect(index)"
-                                  @click.ctrl="handleOpenFolder(item)"
-                                  @dblclick="handleOpenFolder(item)">
-                            <Icon type="ios-folder-open"
-                                  size="60" style="margin-top: 10%"
-                            ></Icon>
-                            <p style="margin-top: -10%">
-                                {{item.name}}
-                            </p>
-                        </span>
-                            <div class="demo-upload-list-cover2" v-if="item.checked">
-                                <Icon type="ios-trash-outline" @click.native="handleUnSelect(index)"></Icon>
-                            </div>
+                        <div class="demo-upload-list1" v-for="(item,index) in fileList"
+                             style="overflow:visible ;vertical-align:top;margin-bottom: 30px;">
+                            <span v-if="item.size">
+                                <Dropdown trigger="contextMenu">
+                                    <span v-if="urls.visible">
+                                        <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
+                                            <img :src="formatImage(item.url)" width="98" style="height:98px;"
+                                                 @click="handleSelect(index)"/>
+                                        </Badge>
+                                    </span>
+                                    <span v-else>
+                                        <img :src="formatImage(item.url)" width="98" style="height:98px;"
+                                             @click="handleSelect(index)"/>
+                                    </span>
+                                    <p style="margin-top: -25% ;position:relative;z-index: 100;line-height: 20px">
+                                        <span style="float: left ;">
+                                            <Checkbox v-model="item.checked"></Checkbox>
+                                        </span>
+                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x: hidden;background-color: white;">
+                                            {{item.name}}
+                                        </span>
+                                    </p>
+                                    <DropdownMenu slot="list" style="z-index: 2000 ;">
+                                        <DropdownItem v-if="!item.visible && urls.visible"
+                                                      @click.prevent.native="handleSetVisible(item,1)">设置公开
+                                        </DropdownItem>
+                                        <DropdownItem v-if="item.visible && urls.visible"
+                                                      @click.prevent.native="handleSetVisible(item,0)">设置私有
+                                        </DropdownItem>
+                                        <DropdownItem v-if="urls.rename"
+                                                      @click.prevent.native="handleRename(item)">重命名
+                                        </DropdownItem>
+                                        <DropdownItem @click.prevent.native="handleCopyLink(item)">复制链接</DropdownItem>
+                                        <DropdownItem
+                                                @click.prevent.native="handleCopyMDLink(item)">复制MarkDown链接
+                                        </DropdownItem>
+                                        <DropdownItem @click.prevent.native="handleDownload(item)">下载文件</DropdownItem>
+                                        <DropdownItem v-if="urls.delete" @click.prevent.native="handleDestroy(item)"
+                                                      style="color: #ed4014">删除
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </span>
+                            <span v-else>
+                                 <Dropdown trigger="contextMenu">
+                                    <Icon type="ios-folder-open"
+                                          @click="handleSelect(index)"
+                                          @click.ctrl="handleOpenFolder(item)"
+                                          @dblclick.native="handleOpenFolder(item)"
+                                          size="60" style="margin-top: 30%;"></Icon>
+                                    <DropdownMenu slot="list">
+                                        <DropdownItem v-if="urls.rename"
+                                                      @click.prevent.native="handleRename(item)">重命名</DropdownItem>
+                                        <DropdownItem @click.prevent.native="handleDestroy(item)"
+                                                      v-if="urls.delete" style="color: #ed4014;">删除</DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
+                                <p style="margin-top: 1%;">
+                                 <span style="float: left;margin-left: 10px;margin-bottom: 10px;">
+                                    <Checkbox v-model="item.checked"
+                                              @click.prevent.native="handleSelect(index)"></Checkbox>
+                                    </span>
+                                    <span style="float:left;">
+                                        {{item.name}}
+                                    </span>
+                                </p>
+                            </span>
                         </div>
                     </Col>
                     <Col span="6">
-                        <Card style="width:300px;" v-if="!!currentFile.url">
+                        <Card v-if="!!currentFile.url">
                             <p slot="title">
                                 <Icon type="ios-film-outline"></Icon>
                                 附件信息
@@ -164,6 +237,7 @@
                         </Card>
                     </Col>
                 </Row>
+
                 <Page
                         :total="query.total"
                         show-total
@@ -185,9 +259,24 @@
                 title="图片预览"
                 v-model="visible2"
                 :transfer="false"
+                :footerHide="true"
                 @on-ok="handleCloseReview"
                 @on-cancel="handleCloseReview">
-            <img :src="currentImage.url" style="width: 100%"/>
+            <div style="text-align: center;">
+                <div style="height: 300px;width: 400px;margin: 0 auto;">
+                    <img :src="currentImage.url" style="max-width: 100%;max-height: 100%;"/>
+                </div>
+                <ButtonGroup>
+                    <Button type="default" @click="handleCutOver(true)">
+                        <Icon type="ios-arrow-back"/>
+                        上一张
+                    </Button>
+                    <Button type="default" @click="handleCutOver(false)">
+                        上一张
+                        <Icon type="ios-arrow-forward"/>
+                    </Button>
+                </ButtonGroup>
+            </div>
         </Modal>
 
         <Modal
@@ -196,14 +285,35 @@
                 :transfer="true"
                 @on-ok="handleCloseFolder"
                 @on-cancel="handleCloseFolder">
-            <Form :model="form" :rules="rules" ref="form" @keydown.native.enter.prevent="handleCreateFolder">
-                <FormItem prop="name">
+            <Form :model="form" :rules="rules" ref="form" @keydown.native.enter.prevent="handleCreateFolder"
+                  :label-width="80">
+                <FormItem prop="name" label="目录名">
                     <Input type="text" v-model="form.name" autofocus clearable placeholder="请输入目录名称"></Input>
                 </FormItem>
             </Form>
             <div slot="footer">
-                <Button type="primary" @click="handleCreateFolder">
+                <Button type="primary" :loading="loading2" @click="handleCreateFolder">
                     创建
+                </Button>
+            </div>
+        </Modal>
+
+        <Modal
+                title="重命名"
+                v-model="visible5"
+                :transfer="true"
+                @on-ok=""
+                @on-cancel="">
+            <Form :model="rename.form" :rules="rename.rules" ref="renameForm" :label-width="80"
+                  @keydown.native.enter.prevent="handleRenameSubmit">
+                <FormItem prop="name" label="重命名">
+                    <Input type="text" v-model="rename.form.name" autofocus clearable
+                           placeholder="请输入目录名称"/>
+                </FormItem>
+            </Form>
+            <div slot="footer">
+                <Button type="primary" :loading="loading1" @click="handleRenameSubmit">
+                    确定
                 </Button>
             </div>
         </Modal>
@@ -295,13 +405,31 @@
                 </Button>
             </div>
         </Modal>
+
+        <Modal
+                v-model="visible7"
+                width="80%"
+                title="帮助中心">
+            <div style="width: 100%;">
+                <vue-markdown :source="help"></vue-markdown>
+            </div>
+        </Modal>
     </div>
 </template>
 <script>
     let time = null;
 
+    import Vue from 'vue';
+
     import _ from 'lodash';
-    import {Notice} from 'iview';
+
+    import help from '../../../HELP.md';
+
+    import {Notice, LoadingBar} from 'iview';
+    import VueClipboard from 'vue-clipboard2';
+    import VueMarkdown from 'vue-markdown'
+
+    Vue.use(VueClipboard);
 
     function oneOf(value, validList) {
         for (let i = 0; i < validList.length; i++) {
@@ -320,7 +448,7 @@
         name: 'xayah',
         mixins: [Emitter],
         components: {
-            Notice,
+            Notice, VueMarkdown,
         },
         props: {
             urls: {
@@ -334,6 +462,9 @@
                     delete: '',   //删除文件或目录地址
                     return: '',   //本地回调地址
                     remote: '',   //远程下载地址
+                    visible: '',//设置文件可见性
+                    paste: '',     //复制剪切文件目录
+                    rename: '',    //重命名文件
                 },
             },
             config: {
@@ -347,6 +478,7 @@
                     style: '',
                     key: 'id',
                     gateway: 'oss',
+                    folder: false,      //是否开启目录上传
                 },
             },
             id: {       //dom ID
@@ -390,6 +522,9 @@
                 visible2: false,
                 visible3: false,
                 visible4: false,
+                visible5: false,
+                visible6: false,
+                visible7: false,
                 fileList: [],
                 currentValue: this.value,
                 query: {
@@ -399,6 +534,8 @@
                     total: 0,
                     keyword: null,
                 },
+                help: help,
+                isActive: false,
                 form: {
                     name: null,
                     pid: null,
@@ -472,6 +609,25 @@
                 headers: {},
                 uploadList: [],
                 order: 0,
+                startIndex: 0,
+                loading1: false,
+                loading2: false,
+                objectList: [],
+                actionType: 'copy',
+                rename: {
+                    form: {
+                        id: null,
+                        name: null,
+                    },
+                    rules: {
+                        name: [
+                            {
+                                required: true,
+                                message: '请输入文件名',
+                            },
+                        ],
+                    },
+                },
             }
         },
         computed: {
@@ -499,13 +655,24 @@
             addStatus() {
                 return !(this.cloud.form.items.length < 10);
             },
-            images() {
-                return this.formatValue();
-            }
+            images: {
+                get: function () {
+                    return this.formatValue();
+                },
+                set: function () {
+
+                },
+            },
+            pasteStatus() {
+                return !this.objectList.length;
+            },
         },
         watch: {
             value(val) {
                 this.currentValue = this.value;
+            },
+            objectList: function (newValue) {
+                this.visible6 = !!newValue.length;
             },
             cloud: {
                 deep: true,
@@ -522,8 +689,72 @@
             if (this.urls.policy) {
                 this.checkPolicy();
             }
+
+            this.initUploadFolder();
+
+            //检查浏览器是否支持目录上传
+            if (this.config.folder) {
+                this.config.folder = this.isInputDirSupported();
+            }
         },
         methods: {
+            isInputDirSupported() {
+                let tmpInput = document.createElement('input');
+
+                if ('webkitdirectory' in tmpInput
+                    || 'mozdirectory' in tmpInput
+                    || 'odirectory' in tmpInput
+                    || 'msdirectory' in tmpInput
+                    || 'directory' in tmpInput) return true;
+
+                return false;
+            },
+            initUploadFolder() {
+                let that = this;
+
+                document.getElementById('uploadFolder').addEventListener('change', function (e) {
+                    if (!this.files.length) return;
+
+                    for (let i = 0; i < this.files.length; i++) {
+                        if (that.checkFileSize(this.files[i].size) && that.checkFileType(this.files[i].name)) {
+                            that.uploadFiles(new File([this.files[i]], that.getRandomName(this.files[i]), {type: this.files[i].type}));
+                        }
+                    }
+                }, false);
+            },
+            checkFileType(type) {
+                if (!oneOf(type.split('.')[1], this.config.format)) {
+                    return false;
+                }
+
+                return true;
+            },
+            checkFileSize(size) {
+                if (size < this.config.size) {
+                    return false;
+                }
+
+                return true;
+            },
+            swapArr(arr, index1, index2) {
+                arr[index1] = arr.splice(index2, 1, arr[index1])[0];
+                return arr;
+            },
+            handleHelp() {
+                this.visible7 = true;
+            },
+            handleDrop() {
+                this.isActive = !this.isActive;
+            },
+            drag(event, index) {
+                this.startIndex = index;
+            },
+            drop(event, index) {
+                this.images = this.swapArr(this.images, this.startIndex, index);
+            },
+            allowDrop(event) {
+                event.preventDefault()
+            },
             handlePaste(e) {
                 let files = Array.prototype.slice.call(e.clipboardData.files);
 
@@ -636,13 +867,22 @@
                     return false;
                 }
 
+                LoadingBar.start();
+
                 axios.get(this.urls.index, {params: this.query}).then(function (res) {
                     that.fileList = res.data.children.data;
                     that.query.total = res.data.children.total;
                     that.parentFolder = res.data.parent;
+
+                    that.currentFolder = res.data.parent;
+
                     that.form.pid = res.data.parent[that.config.key];
+
+                    LoadingBar.finish();
                 }).catch(function (error) {
                     console.error(error);
+
+                    LoadingBar.error();
                 });
             },
             handleOpenFolder(folder) {
@@ -657,11 +897,18 @@
                 this.getFiles();
             },
             handleSelect(index) {
+
+                let that = this;
+
                 clearTimeout(time);
-                time = setTimeout(() => {
-                    this.fileList[index]['checked'] = true;
-                    this.fileList[index]['order'] = ++this.order;
-                    this.currentFile = this.fileList[index];
+
+
+                time = setTimeout(function () {
+                    // this.fileList[index]['checked'] = true;
+
+                    that.fileList[index]['checked'] = !that.fileList[index]['checked'];
+                    that.fileList[index]['order'] = ++that.order;
+                    that.currentFile = that.fileList[index];
                 }, 300);
             },
             handleUnSelect(index) {
@@ -705,6 +952,8 @@
                         this.currentValue = '';
                         break;
                 }
+
+                event.preventDefault()
             },
             handleAddFolder() {
                 let that = this;
@@ -738,9 +987,86 @@
                     ],
                 };
             },
+            handleSetVisible(item, visible) {
+                let form = {
+                    id: item[this.config.key],
+                    visible: visible,
+                };
+
+                axios.patch(this.urls.visible, form).then(res => {
+                    if (res.data.status === 200) {
+                        this.$Notice.success({
+                            title: '设置成功',
+                        });
+
+                        this.getFiles();
+                    } else {
+                        this.$Notice.error({
+                            title: '设置失败',
+                            desc: res.data.msg
+                        });
+                    }
+                }).catch(error => {
+                    console.error(error);
+                });
+            },
+            handleRename(item) {
+                this.visible5 = true;
+                this.rename.form.id = item.id;
+                this.rename.form.name = item.name;
+            },
+
+            handleCopyLink(item) {
+                this.$copyText(item.url).then(res => {
+                    this.$Notice.success({
+                        title: '链接复制成功',
+                    });
+                });
+            },
+            handleCopyMDLink(item) {
+                let mdUrl = '![' + item.url.substring(0, item.url.indexOf('?') === -1 ? item.url.length : item.url.indexOf('?')).substr(item.url.lastIndexOf('/') + 1) + ']' + '(' + item.url + ')';
+
+                this.$copyText(mdUrl).then(res => {
+                    this.$Notice.success({
+                        title: 'MarkDown 链接复制成功',
+                    });
+                });
+            },
+            handleDownload(item) {
+                window.open(item.url);
+            },
+            handleDestroy(item) {
+                let res = _([item]).map().filter().flatMap(this.config.key).value();
+
+                let form = {
+                    ids: res,
+                };
+
+                axios.delete(this.urls.delete, {data: form}).then(res => {
+                    if (res.data.status === 200) {
+                        this.$Notice.success({
+                            title: '删除成功',
+                            desc: ' '
+                        });
+                        this.getFiles();
+                    } else {
+                        this.$Notice.error({
+                            title: '删除失败',
+                            desc: res.data.msg
+                        });
+                    }
+                }).catch(error => {
+                    console.error(error);
+                });
+            },
             handleReview(val) {
                 this.visible2 = true;
                 this.currentImage = val;
+
+                event.preventDefault()
+            },
+            handleUploadFolder() {
+                document.getElementById('uploadFolder').click();
             },
             handleFormatError() {
                 Notice.warning({
@@ -808,7 +1134,29 @@
                 return Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
             },
             handleCancel() {
+                this.objectList = [];
                 this.visible4 = false;
+            },
+            handleCutOver(val) {
+                let that = this;
+
+                if (val) {
+                    let index = _.findIndex(that.images, function (o) {
+                        return o.url === that.currentImage.url;
+                    });
+
+                    index = !index ? this.images.length : index;
+
+                    this.currentImage = this.images[index - 1];
+                } else {
+                    let index = _.findIndex(that.images, function (o) {
+                        return o.url === that.currentImage.url;
+                    });
+
+                    index = (index + 1) === this.images.length ? -1 : index;
+
+                    this.currentImage = this.images[index + 1];
+                }
             },
             handleCloseReview() {
                 this.visible2 = false;
@@ -1031,6 +1379,49 @@
                 this.query.page = 1;
                 this.getFiles();
             },
+            handleCopy() {
+                this.actionType = 'copy';
+
+                let res = _(this.fileList).map().filter(function (o) {
+                    return o.checked;
+                }).flatMap(this.config.key).value();
+
+                this.objectList = res;
+            },
+            handleCut() {
+                this.actionType = 'cut';
+
+                let res = _(this.fileList).map().filter(function (o) {
+                    return o.checked;
+                }).flatMap(this.config.key).value();
+
+                this.objectList = res;
+            },
+            handleStick() {
+                let form = {
+                    action: this.actionType,
+                    ids: this.objectList,
+                    folder_id: this.currentFolder[this.config.key],
+                };
+
+                axios.post(this.urls.paste, form).then(res => {
+                    if (res.status === 200) {
+                        this.$Notice.success({
+                            title: '操作成功',
+                            desc: ' ',
+                        });
+
+                        this.objectList = [];
+
+                        this.getFiles();
+                    } else {
+                        this.$Notice.error({
+                            title: '操作失败',
+                            desc: res.msg,
+                        });
+                    }
+                });
+            },
             handleSearch() {
                 this.query.pid = null;
                 this.query.page = 1;
@@ -1086,8 +1477,43 @@
                 this.visible3 = false;
                 this.form.name = null;
             },
+            handleRenameSubmit() {
+                this.loading1 = true;
+
+                this.$refs.renameForm.validate((valid) => {
+                    if (valid) {
+                        axios.put(this.urls.rename, this.rename.form).then(res => {
+                            if (res.status === 200) {
+                                this.$Notice.success({
+                                    title: '操作成功',
+                                    desc: ' ',
+                                });
+
+                                this.loading1 = false;
+                                this.visible5 = false;
+                                this.getFiles();
+                            } else {
+                                this.$Notice.error({
+                                    title: '操作失败',
+                                    desc: res.msg,
+                                });
+                            }
+                        }).catch(error => {
+                            console.error(error);
+                        });
+                    } else {
+                        this.$Notice.warning({
+                            title: '表单参数有误',
+                            desc: '请检查',
+                        });
+                    }
+                });
+            },
             handleCreateFolder() {
                 let that = this;
+
+                this.loading2 = true;
+
                 this.$refs.form.validate((valid) => {
                     if (valid) {
                         axios.post(this.urls.create, this.form).then(function (res) {
@@ -1097,6 +1523,9 @@
                                     desc: ' '
                                 });
                                 that.clean();
+
+                                this.loading2 = false;
+
                                 that.getFiles();
                             } else {
                                 Notice.error({
@@ -1207,5 +1636,9 @@
         font-size: 20px;
         cursor: pointer;
         margin: 0 5px;
+    }
+
+    .demo-active {
+        display: none !important;
     }
 </style>

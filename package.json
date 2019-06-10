@@ -1,7 +1,7 @@
 {
   "name": "xayah",
   "description": "类 CKFinder 通用文件管理器",
-  "version": "2.0.20-beta",
+  "version": "2.1.0-beta",
   "author": "TELstatic <telstatic@gmail.com>",
   "license": "MIT",
   "private": false,
@@ -25,11 +25,16 @@
     "prod": "cross-env NODE_ENV=production webpack --progress --hide-modules --config=webpack.config.prod.js"
   },
   "dependencies": {
-    "vue": "^2.5.17",
+    "axios": "^0.18",
+    "html-loader": "^0.5.5",
     "iview": "^3.4.1",
     "lodash": "^4.17.4",
+    "markdown-loader": "^5.0.0",
     "moment": "^2.22.1",
-    "axios": "^0.17"
+    "vue": "^2.5.17",
+    "vue-clipboard2": "^0.2.1",
+    "vue-markdown": "^2.2.4",
+    "webpack-cli": "^3.3.3"
   },
   "browserslist": [
     "> 1%",
@@ -44,9 +49,9 @@
     "cross-env": "^5.0.5",
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.4",
-    "vue-loader": "^13.0.5",
+    "vue-loader": "^14.2.4",
     "vue-template-compiler": "^2.4.4",
-    "webpack": "^3.6.0",
+    "webpack": "^4.33.0",
     "webpack-dev-server": ">=3.1.11"
   }
 }
