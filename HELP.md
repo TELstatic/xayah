@@ -16,7 +16,7 @@
 
 ##### 2.上传组件
 
-![](//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/ifhgoq16axs1560133657835.png)
+![](https://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/ifhgoq16axs1560133657835.png)
 
 ## 功能列表
 
