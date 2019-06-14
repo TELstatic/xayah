@@ -1,7 +1,7 @@
 {
   "name": "xayah",
   "description": "类 CKFinder 通用文件管理器",
-  "version": "2.1.0-beta",
+  "version": "2.1.3-beta",
   "author": "TELstatic <telstatic@gmail.com>",
   "license": "MIT",
   "private": false,
@@ -31,6 +31,7 @@
     "lodash": "^4.17.4",
     "markdown-loader": "^5.0.0",
     "moment": "^2.22.1",
+    "uglifyjs-webpack-plugin": "^2.1.3",
     "vue": "^2.5.17",
     "vue-clipboard2": "^0.2.1",
     "vue-markdown": "^2.2.4",

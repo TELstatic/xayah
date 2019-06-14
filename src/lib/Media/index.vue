@@ -132,21 +132,21 @@
                              style="overflow:visible ;vertical-align:top;margin-bottom: 30px;">
                             <span v-if="item.size">
                                 <Dropdown trigger="contextMenu">
-                                    <span v-if="urls.visible">
+                                    <span v-if="urls.visible" style="display: block;height: 98px;">
                                         <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
                                             <img :src="formatImage(item.url)" width="98" style="height:98px;"
                                                  @click="handleSelect(index)"/>
                                         </Badge>
                                     </span>
-                                    <span v-else>
+                                    <span v-else style="display: block;height: 98px">
                                         <img :src="formatImage(item.url)" width="98" style="height:98px;"
                                              @click="handleSelect(index)"/>
                                     </span>
-                                    <p style="margin-top: -25% ;position:relative;z-index: 100;line-height: 20px">
+                                    <p style="position:relative;z-index: 100;line-height: 20px">
                                         <span style="float: left ;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
-                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x: hidden;background-color: white;">
+                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                             {{item.name}}
                                         </span>
                                     </p>
@@ -172,6 +172,7 @@
                                 </Dropdown>
                             </span>
                             <span v-else>
+
                                  <Dropdown trigger="contextMenu">
                                     <Icon type="ios-folder-open"
                                           @click="handleSelect(index)"
@@ -185,7 +186,7 @@
                                                       v-if="urls.delete" style="color: #ed4014;">删除</DropdownItem>
                                     </DropdownMenu>
                                 </Dropdown>
-                                <p style="margin-top: 1%;">
+                                <p>
                                  <span style="float: left;margin-left: 10px;margin-bottom: 10px;">
                                     <Checkbox v-model="item.checked"
                                               @click.prevent.native="handleSelect(index)"></Checkbox>
@@ -1015,22 +1016,29 @@
                 this.rename.form.id = item.id;
                 this.rename.form.name = item.name;
             },
-
             handleCopyLink(item) {
-                this.$copyText(item.url).then(res => {
+                this.copy(item.url, '链接复制成功');
+            },
+            copy(val, msg) {
+                const input = document.createElement('input');
+                input.setAttribute('readonly', 'readonly');
+                input.setAttribute('value', val);
+                document.body.appendChild(input);
+                input.setSelectionRange(0, 9999);
+                input.select();
+
+                if (document.execCommand('copy')) {
                     this.$Notice.success({
-                        title: '链接复制成功',
+                        title: msg,
                     });
-                });
+                }
+
+                document.body.removeChild(input);
             },
             handleCopyMDLink(item) {
                 let mdUrl = '![' + item.url.substring(0, item.url.indexOf('?') === -1 ? item.url.length : item.url.indexOf('?')).substr(item.url.lastIndexOf('/') + 1) + ']' + '(' + item.url + ')';
 
-                this.$copyText(mdUrl).then(res => {
-                    this.$Notice.success({
-                        title: 'MarkDown 链接复制成功',
-                    });
-                });
+                this.copy(mdUrl, 'MarkDown 链接复制成功');
             },
             handleDownload(item) {
                 window.open(item.url);

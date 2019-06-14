@@ -154,7 +154,7 @@
                     check: '//skydisk.local/user/file/check',    //检查文件唯一
                     policy: '//skydisk.local/user/file/policy',   //获取上传策略地址
                     delete: '//skydisk.local/user/file/batch',   //删除文件或目录地址
-                    visible: '//skydisk.local/user/file/visible',//设置文件可见性
+                    // visible: '//skydisk.local/user/file/visible',//设置文件可见性
                     paste: '//skydisk.local/user/file/paste',     //复制剪切文件目录
                     rename: '//skydisk.local/user/file/rename',    //重命名文件
                     return: process.env.NODE_ENV === 'development' ? '//skydisk.local/rakan/callback/oss' : null,   //本地回调地址

@@ -1,5 +1,8 @@
 var path = require('path');
 var webpack = require('webpack');
+const marked = require("marked");
+const renderer = new marked.Renderer();
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 console.log("npm 打包发布");
 
@@ -40,6 +43,21 @@ module.exports = {
                 options: {
                     name: '[name].[ext]?[hash]'
                 }
+            },
+            {
+                test: /\.md$/,
+                use: [
+                    {
+                        loader: "html-loader"
+                    },
+                    {
+                        loader: "markdown-loader",
+                        options: {
+                            pedantic: true,
+                            renderer
+                        }
+                    }
+                ]
             }
         ]
     },
@@ -57,8 +75,24 @@ module.exports = {
     performance: {
         hints: false
     },
-    devtool: '#eval-source-map'
-}
+    devtool: '#eval-source-map',
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: '"production"'
+            }
+        }),
+    ],
+    optimization: {
+        minimizer: [
+            new UglifyJsPlugin({
+                uglifyOptions: {
+                    compress: false
+                }
+            }),
+        ],
+    },
+};
 
 if (process.env.NODE_ENV === 'production') {
     module.exports.devtool = '#source-map'
@@ -68,15 +102,6 @@ if (process.env.NODE_ENV === 'production') {
             'process.env': {
                 NODE_ENV: '"production"'
             }
-        }),
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            compress: {
-                warnings: false
-            }
-        }),
-        new webpack.LoaderOptionsPlugin({
-            minimize: true
         })
     ])
 }
