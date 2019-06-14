@@ -126,7 +126,7 @@
                             url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
                         },
                         {
-                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
+                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/test2.png'
                         }
                     ],
                     items: [
@@ -136,7 +136,7 @@
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/test2.png?OSSAccessKeyId=LTAI2TKikO7N2D9l&Expires=1560495932&Signature=kGsA%2B%2Frjl59K4hTyyElCxVlACaQ%3D',
                         }, {
                             sku: null,
                             module: null,

@@ -752,9 +752,10 @@
             },
             drop(event, index) {
                 this.images = this.swapArr(this.images, this.startIndex, index);
+                event.preventDefault();
             },
             allowDrop(event) {
-                event.preventDefault()
+                event.preventDefault();
             },
             handlePaste(e) {
                 let files = Array.prototype.slice.call(e.clipboardData.files);
