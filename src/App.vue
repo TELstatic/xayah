@@ -8,6 +8,7 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
+                         simple="rakan"
                          @callback="callback"
                          :config="config">
                 </x-media>
@@ -87,7 +88,6 @@
                                      :urls="urls"
                                      :max="1"
                                      type="string"
-                                     :simple="false"
                                      :config="config">
                             </x-media>
                         </Col>
@@ -124,9 +124,6 @@
                     images: [
                         {
                             url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
-                        },
-                        {
-                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/test2.png'
                         }
                     ],
                     items: [
@@ -136,39 +133,53 @@
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/pebygwldkw/test2.png?OSSAccessKeyId=LTAI2TKikO7N2D9l&Expires=1560495932&Signature=kGsA%2B%2Frjl59K4hTyyElCxVlACaQ%3D',
+                            images: null,
                         }, {
                             sku: null,
                             module: null,
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                            images: null,
                         }
                     ]
                 },
                 urls: {
-                    index: '//skydisk.local/user/file/index',    //获取文件地址
-                    upload: '//delii.oss-cn-shanghai.aliyuncs.com/',   //上传地址
-                    create: '//skydisk.local/user/file/create',   //创建目录地址
-                    check: '//skydisk.local/user/file/check',    //检查文件唯一
-                    policy: '//skydisk.local/user/file/policy',   //获取上传策略地址
-                    delete: '//skydisk.local/user/file/batch',   //删除文件或目录地址
-                    // visible: '//skydisk.local/user/file/visible',//设置文件可见性
-                    paste: '//skydisk.local/user/file/paste',     //复制剪切文件目录
-                    rename: '//skydisk.local/user/file/rename',    //重命名文件
-                    return: process.env.NODE_ENV === 'development' ? '//skydisk.local/rakan/callback/oss' : null,   //本地回调地址
+                    index: 'https://canarys.kodos.space/api/file/index',     //获取文件地址
+                    upload: '//canarys.oss-cn-shanghai.aliyuncs.com',       //上传地址
+                    create: 'https://canarys.kodos.space/api/file/create',   //创建目录地址
+                    // check: 'https://canarys.kodos.space/api/file/check',     //检查文件唯一
+                    policy: 'https://canarys.kodos.space/api/file/policy',   //获取上传策略地址
+                    delete: 'https://canarys.kodos.space/api/file/batch',    //删除文件或目录地址
+                    visible: 'https://canarys.kodos.space/api/file/visible', //设置文件可见性
+                    paste: 'https://canarys.kodos.space/api/file/paste',     //复制剪切文件目录
+                    rename: 'https://canarys.kodos.space/api/file/rename',   //重命名文件
+
+                    // index: '//canarys.kodos.local:3001/api/file/index',     //获取文件地址
+                    // upload: '//canarys.oss-cn-shanghai.aliyuncs.com',       //上传地址
+                    // create: '//canarys.kodos.local:3001/api/file/create',   //创建目录地址
+                    // check: '//canarys.kodos.local:3001/api/file/check',     //检查文件唯一
+                    // policy: '//canarys.kodos.local:3001/api/file/policy',   //获取上传策略地址
+                    // delete: '//canarys.kodos.local:3001/api/file/batch',    //删除文件或目录地址
+                    // visible: '//canarys.kodos.local:3001/api/file/visible', //设置文件可见性
+                    // paste: '//canarys.kodos.local:3001/api/file/paste',     //复制剪切文件目录
+                    // rename: '//canarys.kodos.local:3001/api/file/rename',   //重命名文件
+
                 },
                 config: {
                     format: [
-                        'jpg', 'png', 'jpeg'
+                        'jpg', 'png', 'jpeg',
                     ],     //上传类型限制
                     size: 0,        //上传大小限制
-                    random: true,  //是否启用随机文件名
+                    random: false,  //是否启用随机文件名
                     key: 'id',
                     style: '',
                     gateway: 'oss',
                     folder: false,
+                    token: '',
+                    resource: true,
+                    debug: true,
+                    strict: true,
                 },
                 rules: {
                     title: {

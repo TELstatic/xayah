@@ -2,6 +2,14 @@
 
 > 阿里云上传配套组件(iView)
 
+<p align="center">
+    <img src="https://img.shields.io/npm/v/xayah.svg?style=flat-square" alt="npm version" />
+    <img src="https://img.shields.io/npm/l/xayah.svg?style=flat-square" alt="licence" />
+    <img src="https://img.shields.io/npm/dt/xayah.svg?style=flat-square" alt="downloads" />
+    <img src="https://img.shields.io/npm/dm/xayah.svg?style=flat-square" alt="downloads" />
+    <img src="https://img.badgesize.io/https://unpkg.com/xayah/dist/xayah.min.js?compression=gzip&style=flat-square&label=JS%20gzip%20size" alt="JS Gzip Size" />    
+</p>
+
 * [安装](#installation)
 * [使用](#usage)
 * [属性](#props)
@@ -98,6 +106,7 @@
  | urls.return      | string | true    | ''   | 本地回调地址|               
 | id      | string | false    | null   | Dom ID|
 | max      | int | false    | 1   | 限制插入图片数量|
+| simple | string | false | '' | 简单上传模式 默认上传目录 填写即为启用| 
 | type      | string | false    | 'object'   | 默认返回类型 |
 | config.random      | bool | false    | false   | 使用随机文件名|
 | config.size      | int | false    | 0   | 限制上传文件大小|

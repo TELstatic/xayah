@@ -1,36 +1,31 @@
 <template>
-    <div style="display: inline">
-        <div class="demo-upload-list" v-for="(item,index) in images">
-            <img :src="item.url" @dragstart='drag($event,index)' @drop='drop($event,index)'
-                 @dragover='allowDrop($event,index)' @click="handleDrop">
-            <div class="demo-upload-list-cover" v-bind:class="{ 'demo-active': isActive }" @click="handleDrop">
+    <div class="xayah-display-inline">
+        <div class="xayah-upload-list" v-for="(item,index) in images">
+            <img :src="item.url" @dragstart='handleDragStart($event,index)' @drop='handleDrop($event,index)'
+                 @dragover='handleDragOver($event,index)' @click="handleDropActive">
+            <div class="xayah-upload-list-cover" v-bind:class="{ 'xayah-drag-active': isActive }"
+                 @click="handleDropActive">
                 <Icon type="ios-eye-outline" @click.native.stop="handleReview(item)"></Icon>
                 <Icon type="ios-trash-outline" @click.native.stop="handleSlice(index)"></Icon>
             </div>
         </div>
-        <div style="display: inline;" v-if="images.length<max">
-            <div class="demo-upload-list"
+        <div class="xayah-display-inline" v-if="images.length<max">
+            <div class="xayah-upload-list"
                  :id="id"
-                 @click="handleOpen"
-                 style="display: inline-block;width:58px;">
-                <div style="width: 58px;height:58px;line-height: 58px;">
-                    <Icon type="ios-camera-outline" size="30"></Icon>
-                </div>
+                 @click="handleChoose">
+                <Icon type="ios-camera-outline" size="30"></Icon>
             </div>
         </div>
         <Modal
                 v-model="visible"
-                width="1200"
+                width="1300"
                 :transfer="true"
                 title="媒体库"
                 id="xayah">
-            <p slot="close">
-                <Icon type="ios-help-circle-outline"
-                      style="font-size: 20px;color: #999;-webkit-transition: color .2s ease;transition: color .2s ease;position: relative;top: 1px;"
-                      @click.stop="handleHelp">查看帮助
-                </Icon>
+            <div slot="close">
+                <Icon type="ios-help-circle-outline" class="xayah-help-icon" @click.stop="handleHelp">查看帮助</Icon>
                 <Icon type="ios-close"></Icon>
-            </p>
+            </div>
 
             <div @paste="handlePaste">
                 <Row>
@@ -38,18 +33,17 @@
                         <Upload
                                 v-if="urls.upload"
                                 ref="upload"
-                                style="display: inline;"
+                                class="xayah-display-inline"
                                 :format="config.format"
                                 :max-size="config.size"
                                 :data="headers"
                                 multiple
                                 :on-format-error="handleFormatError"
-                                :on-exceeded-size="handleMaxSize"
-                                :before-upload="beforeUpload"
+                                :on-exceeded-size="handleExceededSize"
+                                :before-upload="handleBeforeUpload"
                                 :show-upload-list="false"
-                                :on-success="success"
-                                :on-remove="remove"
-                                :on-error="error"
+                                :on-success="handleSuccess"
+                                :on-error="handleError"
                                 :action="urls.upload">
                             <Button type="success" icon="ios-cloud-upload-outline" id="upload">上传</Button>
                         </Upload>
@@ -59,17 +53,17 @@
                         </Button>
 
                         <input type='file' id="uploadFolder" webkitdirectory
-                               style="display: none;"/>
+                               class="xayah-display-none"/>
 
                         <Button icon="ios-thunderstorm-outline" type="info" @click="handleUpload" v-if="urls.remote">
                             云上传
                         </Button>
 
-                        <div v-if="urls.index" style="display: inline;">
+                        <div v-if="urls.index" class="xayah-display-inline">
                             <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
                                 Root
                             </Button>
-                            <Button icon="ios-refresh" @click="handleReload">
+                            <Button icon="ios-refresh" @click="handleRefresh">
                                 刷新
                             </Button>
                             <Poptip
@@ -99,7 +93,7 @@
                                 移动
                             </Button>
 
-                            <ButtonGroup v-if="visible6 && urls.paste">
+                            <ButtonGroup v-if="objectList.length && urls.paste">
                                 <Button type="dashed" :disabled="pasteStatus" icon="ios-paper-outline"
                                         @click="handleStick">
                                     粘贴 ({{objectList.length}})
@@ -113,44 +107,40 @@
                                    placeholder="请输入关键词查找"></Input>
                         </div>
 
-                        <span style="float: right;">
-                        <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange">
+                        <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange"
+                                  style="float: right;">
                             <span slot="open">智能</span>
                             <span slot="close">默认</span>
                         </i-switch>
-                    </span>
                     </Col>
                 </Row>
                 <Divider/>
                 <Row :gutter="24">
                     <Col span="18" style="min-height: 500px;">
-                        <div class="demo-upload-list1" @click="handleAddFolder" v-if="urls.create"
-                             style="overflow: visible ;">
-                            <Icon type="ios-add" size="60" style="margin-top: 20%;"></Icon>
+                        <div class="xayah-object-list" @click="handleAddFolder" v-if="urls.create"
+                             style="overflow:visible;">
+                            <Icon type="ios-add" size="60" class="xayah-create-folder"></Icon>
                         </div>
-                        <div class="demo-upload-list1" v-for="(item,index) in fileList"
-                             style="overflow:visible ;vertical-align:top;margin-bottom: 30px;">
+                        <div class="xayah-object-list xayah-file-list" v-for="(item,index) in fileList">
                             <span v-if="item.size">
                                 <Dropdown trigger="contextMenu">
                                     <span v-if="urls.visible" style="display: block;height: 98px;">
                                         <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
-                                            <img :src="formatImage(item.url)" width="98" style="height:98px;"
-                                                 @click="handleSelect(index)"/>
+                                            <img :src="formatImage(item)" @click="handleSelect(index)"/>
                                         </Badge>
                                     </span>
                                     <span v-else style="display: block;height: 98px">
-                                        <img :src="formatImage(item.url)" width="98" style="height:98px;"
-                                             @click="handleSelect(index)"/>
+                                        <img :src="formatImage(item)" @click="handleSelect(index)"/>
                                     </span>
-                                    <p style="position:relative;z-index: 100;line-height: 20px">
-                                        <span style="float: left ;">
+                                    <p style="position:relative;line-height: 20px">
+                                        <span style="float: left;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
                                         <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                             {{item.name}}
                                         </span>
                                     </p>
-                                    <DropdownMenu slot="list" style="z-index: 2000 ;">
+                                    <DropdownMenu slot="list">
                                         <DropdownItem v-if="!item.visible && urls.visible"
                                                       @click.prevent.native="handleSetVisible(item,1)">设置公开
                                         </DropdownItem>
@@ -172,14 +162,13 @@
                                 </Dropdown>
                             </span>
                             <span v-else>
-
                                  <Dropdown trigger="contextMenu">
                                     <Icon type="ios-folder-open"
                                           @click="handleSelect(index)"
                                           @click.ctrl="handleOpenFolder(item)"
                                           @dblclick.native="handleOpenFolder(item)"
-                                          size="60" style="margin-top: 30%;"></Icon>
-                                    <DropdownMenu slot="list">
+                                          size="60" class="xayah-create-folder"></Icon>
+                                    <DropdownMenu slot="list" v-if="urls.rename || urls.delete">
                                         <DropdownItem v-if="urls.rename"
                                                       @click.prevent.native="handleRename(item)">重命名</DropdownItem>
                                         <DropdownItem @click.prevent.native="handleDestroy(item)"
@@ -187,7 +176,7 @@
                                     </DropdownMenu>
                                 </Dropdown>
                                 <p>
-                                 <span style="float: left;margin-left: 10px;margin-bottom: 10px;">
+                                 <span style="float: left;">
                                     <Checkbox v-model="item.checked"
                                               @click.prevent.native="handleSelect(index)"></Checkbox>
                                     </span>
@@ -252,27 +241,37 @@
                 ></Page>
             </div>
             <div slot="footer">
-                <Button type="info" :disabled="insertStatus" @click="insertImages">插入图片</Button>
+                <ButtonGroup style="float: left" v-if="config.resource">
+                    <Button icon="logo-github" type="text" to="//github.com/telstatic/xayah" target="_blank">源码</Button>
+                </ButtonGroup>
+
+                <Button type="info" :disabled="insertStatus" @click="insertImages">
+                    <slot>
+                        插入图片
+                    </slot>
+                </Button>
             </div>
         </Modal>
 
         <Modal
                 title="图片预览"
-                v-model="visible2"
+                v-model="imageReview.visible"
+                width="60%"
                 :transfer="false"
-                :footerHide="true"
-                @on-ok="handleCloseReview"
-                @on-cancel="handleCloseReview">
-            <div style="text-align: center;">
-                <div style="height: 300px;width: 400px;margin: 0 auto;">
-                    <img :src="currentImage.url" style="max-width: 100%;max-height: 100%;"/>
+                :footerHide="true">
+            <div style="text-align: center;width: 100%">
+                <div style="height: 500px;width: 100%;margin: 0 auto;">
+                    <img :src="imageReview.currentImage.url" style="max-width: 100%;max-height: 100%;"/>
                 </div>
+
+                <pre>{{getFilename(imageReview.currentImage.url)}}</pre>
+
                 <ButtonGroup>
-                    <Button type="default" @click="handleCutOver(true)">
+                    <Button type="default" @click="handleChangeImage(true)">
                         <Icon type="ios-arrow-back"/>
                         上一张
                     </Button>
-                    <Button type="default" @click="handleCutOver(false)">
+                    <Button type="default" @click="handleChangeImage(false)">
                         上一张
                         <Icon type="ios-arrow-forward"/>
                     </Button>
@@ -282,18 +281,18 @@
 
         <Modal
                 title="创建目录"
-                v-model="visible3"
-                :transfer="true"
-                @on-ok="handleCloseFolder"
-                @on-cancel="handleCloseFolder">
-            <Form :model="form" :rules="rules" ref="form" @keydown.native.enter.prevent="handleCreateFolder"
+                v-model="createFolder.visible"
+                :transfer="true">
+            <Form :model="createFolder.form" :rules="createFolder.rules" ref="createFolderForm"
+                  @keydown.native.enter.prevent="handleSubmitFolder"
                   :label-width="80">
                 <FormItem prop="name" label="目录名">
-                    <Input type="text" v-model="form.name" autofocus clearable placeholder="请输入目录名称"></Input>
+                    <Input type="text" v-model="createFolder.form.name" autofocus clearable
+                           placeholder="请输入目录名称"></Input>
                 </FormItem>
             </Form>
             <div slot="footer">
-                <Button type="primary" :loading="loading2" @click="handleCreateFolder">
+                <Button type="primary" :loading="createFolder.loading" @click="handleSubmitFolder">
                     创建
                 </Button>
             </div>
@@ -301,19 +300,16 @@
 
         <Modal
                 title="重命名"
-                v-model="visible5"
-                :transfer="true"
-                @on-ok=""
-                @on-cancel="">
+                v-model="rename.visible"
+                :transfer="true">
             <Form :model="rename.form" :rules="rename.rules" ref="renameForm" :label-width="80"
                   @keydown.native.enter.prevent="handleRenameSubmit">
                 <FormItem prop="name" label="重命名">
-                    <Input type="text" v-model="rename.form.name" autofocus clearable
-                           placeholder="请输入目录名称"/>
+                    <Input type="text" v-model="rename.form.name" autofocus clearable placeholder="请输入目录名称"></Input>
                 </FormItem>
             </Form>
             <div slot="footer">
-                <Button type="primary" :loading="loading1" @click="handleRenameSubmit">
+                <Button type="primary" :loading="rename.loading" @click="handleRenameSubmit">
                     确定
                 </Button>
             </div>
@@ -321,7 +317,7 @@
 
         <Modal
                 width="1000"
-                v-model="visible4"
+                v-model="cloud.visible"
                 :transfer="true"
                 @on-ok=""
                 @on-cancel="">
@@ -331,7 +327,7 @@
                     <Icon type="ios-help-circle-outline"></Icon>
                 </Tooltip>
             </p>
-            <Form :model="cloud.form" :rules="cloud.rules" ref="cloud"
+            <Form :model="cloud.form" :rules="cloud.rules" ref="cloudForm"
                   @keydown.native.enter.prevent="handleSubmit">
                 <div>
                     <Row>
@@ -388,7 +384,8 @@
                     <FormItem>
                         <Row>
                             <Col span="12">
-                                <Button type="dashed" long @click="handleAdd" :disabled="addStatus" icon="plus-round">
+                                <Button type="dashed" long @click="handleAdd" v-if="this.cloud.form.items.length < 10"
+                                        icon="plus-round">
                                     新增图片
                                 </Button>
                             </Col>
@@ -401,18 +398,15 @@
                 <Button type="info" @click="handleSubmit" :disabled="uploadStatus">
                     获取
                 </Button>
-                <Button type="dashed" @click="handleCancel">
-                    取消
-                </Button>
             </div>
         </Modal>
 
         <Modal
-                v-model="visible7"
+                v-model="help.visible"
                 width="80%"
                 title="帮助中心">
             <div style="width: 100%;">
-                <vue-markdown :source="help"></vue-markdown>
+                <vue-markdown :source="help.source"></vue-markdown>
             </div>
         </Modal>
     </div>
@@ -420,17 +414,11 @@
 <script>
     let time = null;
 
-    import Vue from 'vue';
-
-    import _ from 'lodash';
-
+    import {sortBy} from 'lodash';
     import help from '../../../HELP.md';
-
     import {Notice, LoadingBar} from 'iview';
-    import VueClipboard from 'vue-clipboard2';
     import VueMarkdown from 'vue-markdown'
-
-    Vue.use(VueClipboard);
+    import API from '../../utils/api';
 
     function oneOf(value, validList) {
         for (let i = 0; i < validList.length; i++) {
@@ -442,8 +430,6 @@
     }
 
     import Emitter from '../../mixins/emitter';
-
-    let moment = require("moment");
 
     export default {
         name: 'xayah',
@@ -480,6 +466,9 @@
                     key: 'id',
                     gateway: 'oss',
                     folder: false,      //是否开启目录上传
+                    resource: false,    //是否显示源码链接
+                    debug: false,       //是否开启调试功能
+                    strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
                 },
             },
             id: {       //dom ID
@@ -495,14 +484,14 @@
                 validator(value) {
                     return oneOf(value, ['object', 'array', 'string']);
                 },
-                default: 'object'
+                default: 'object',
             },
             simple: {   //简单上传模式
-                type: Boolean,
-                default: false,
+                type: String,
+                default: '',
             },
             value: {
-                default: "",
+                default: '',
             },
             formatImages: {
                 type: Function,
@@ -514,18 +503,12 @@
                 type: Function,
                 default: function (files) {
                     return this.formatCallback(files);
-                }
-            }
+                },
+            },
         },
         data() {
             return {
                 visible: false,
-                visible2: false,
-                visible3: false,
-                visible4: false,
-                visible5: false,
-                visible6: false,
-                visible7: false,
                 fileList: [],
                 currentValue: this.value,
                 query: {
@@ -535,13 +518,58 @@
                     total: 0,
                     keyword: null,
                 },
-                help: help,
+                help: {
+                    visible: false,
+                    source: help,
+                },
                 isActive: false,
-                form: {
-                    name: null,
+                isSmartSort: false,
+                pageSizeOpts: [
+                    50, 100, 150,
+                ],
+                currentFolder: {
+                    path: null,
+                },
+                parentFolder: {
                     pid: null,
+                    path: 'xayah',
+                },
+                currentFile: {
+                    path: null,
+                    name: null,
+                    size: 0,
+                    width: 0,
+                    height: 0,
+                    created_at: null
+                },
+                headers: {},
+                uploadList: [],
+                order: 0,
+                startIndex: 0,
+                objectList: [],
+                actionType: 'copy',
+                rename: {
+                    form: {
+                        id: null,
+                        name: null,
+                    },
+                    rules: {
+                        name: [
+                            {
+                                required: true,
+                                message: '请输入文件名',
+                            },
+                        ],
+                    },
+                },
+                imageReview: {
+                    visible: false,
+                    currentImage: {
+                        url: null
+                    }
                 },
                 cloud: {
+                    visible: false,
                     form: {
                         pid: null,
                         items: [
@@ -572,89 +600,42 @@
                         },
                     },
                 },
-                isSmartSort: false,
-                rules: {
-                    name: [
-                        {
-                            required: true,
-                            trigger: 'blur',
-                            type: 'string',
-                            message: '目录名必须',
-                        },
-                        {
-                            type: 'string',
-                            pattern: /^[\u4E00-\u9FA5A-Za-z0-9_]+$/,
-                            message: '目录名非法',
-                        },
-                    ]
-                },
-                pageSizeOpts: [
-                    50, 100, 150
-                ],
-                currentFolder: null,
-                parentFolder: {
-                    pid: null,
-                    path: 'xayah',
-                },
-                currentFile: {
-                    path: null,
-                    name: null,
-                    size: 0,
-                    width: 0,
-                    height: 0,
-                    created_at: null
-                },
-                currentImage: {
-                    url: null
-                },
-                headers: {},
-                uploadList: [],
-                order: 0,
-                startIndex: 0,
-                loading1: false,
-                loading2: false,
-                objectList: [],
-                actionType: 'copy',
-                rename: {
+                createFolder: {
+                    visible: false,
+                    loading: false,
                     form: {
-                        id: null,
                         name: null,
+                        pid: null,
                     },
                     rules: {
                         name: [
                             {
                                 required: true,
-                                message: '请输入文件名',
+                                trigger: 'blur',
+                                type: 'string',
+                                message: '目录名必须',
                             },
-                        ],
+                            {
+                                type: 'string',
+                                pattern: /^[\u4E00-\u9FA5A-Za-z0-9_]+$/,
+                                message: '目录名非法',
+                            },
+                        ]
                     },
                 },
             }
         },
         computed: {
             buttonStatus() {
-                let res = _.filter(this.fileList, function (o) {
-                    return o.checked;
-                }).length;
-
-                return !res;
+                return !this.fileList.filter(this.filterChecked).length;
             },
             insertStatus() {
-                let res = _.filter(this.fileList, function (o) {
-                    return o.checked && o.type === "file";
-                }).length;
+                let res = this.fileList.filter(this.filterFileChecked).length;
 
                 return !res && !this.uploadList.length;
             },
             uploadStatus() {
-                let res = _.filter(this.cloud.form.items, function (o) {
-                    return o.url;
-                }).length;
-
-                return !res;
-            },
-            addStatus() {
-                return !(this.cloud.form.items.length < 10);
+                return !this.cloud.form.items.filter(this.filterUrl).length;
             },
             images: {
                 get: function () {
@@ -669,12 +650,10 @@
             },
         },
         watch: {
-            value(val) {
+            value() {
                 this.currentValue = this.value;
             },
-            objectList: function (newValue) {
-                this.visible6 = !!newValue.length;
-            },
+
             cloud: {
                 deep: true,
                 handler(newValue, oldValue) {
@@ -686,10 +665,11 @@
                 }
             }
         },
+        beforeCreate() {
+            localStorage.setItem('debug_mode', this.$options.propsData.config.debug);
+        },
         mounted() {
-            if (this.urls.policy) {
-                this.checkPolicy();
-            }
+            this.checkPolicy();
 
             this.initUploadFolder();
 
@@ -702,59 +682,56 @@
             isInputDirSupported() {
                 let tmpInput = document.createElement('input');
 
-                if ('webkitdirectory' in tmpInput
-                    || 'mozdirectory' in tmpInput
-                    || 'odirectory' in tmpInput
-                    || 'msdirectory' in tmpInput
-                    || 'directory' in tmpInput) return true;
+                if ('webkitdirectory' in tmpInput ||
+                    'mozdirectory' in tmpInput ||
+                    'odirectory' in tmpInput ||
+                    'msdirectory' in tmpInput ||
+                    'directory' in tmpInput) {
+                    this.initUploadFolder();
+
+                    return true;
+                }
 
                 return false;
             },
             initUploadFolder() {
                 let that = this;
 
-                document.getElementById('uploadFolder').addEventListener('change', function (e) {
+                document.getElementById('uploadFolder').addEventListener('change', function () {
                     if (!this.files.length) return;
 
                     for (let i = 0; i < this.files.length; i++) {
                         if (that.checkFileSize(this.files[i].size) && that.checkFileType(this.files[i].name)) {
-                            that.uploadFiles(new File([this.files[i]], that.getRandomName(this.files[i]), {type: this.files[i].type}));
+                            that.uploadFiles(new File([this.files[i]], that.getRandomFilename(this.files[i]), {type: this.files[i].type}));
                         }
                     }
                 }, false);
             },
-            checkFileType(type) {
-                if (!oneOf(type.split('.')[1], this.config.format)) {
-                    return false;
-                }
-
-                return true;
+            checkFileType(filename) {
+                return oneOf(filename.split('.')[1], this.config.format);
             },
             checkFileSize(size) {
-                if (size < this.config.size) {
-                    return false;
-                }
-
-                return true;
+                return size > this.config.size;
             },
-            swapArr(arr, index1, index2) {
-                arr[index1] = arr.splice(index2, 1, arr[index1])[0];
+            swapArr(arr, start, end) {
+                arr[start] = arr.splice(end, 1, arr[start])[0];
+
                 return arr;
             },
             handleHelp() {
-                this.visible7 = true;
+                this.help.visible = true;
             },
-            handleDrop() {
+            handleDropActive() {
                 this.isActive = !this.isActive;
             },
-            drag(event, index) {
+            handleDragStart(event, index) {
                 this.startIndex = index;
             },
-            drop(event, index) {
+            handleDrop(event, index) {
                 this.images = this.swapArr(this.images, this.startIndex, index);
                 event.preventDefault();
             },
-            allowDrop(event) {
+            handleDragOver(event) {
                 event.preventDefault();
             },
             handlePaste(e) {
@@ -763,7 +740,7 @@
                 if (!files.length) return;
 
                 files.forEach(file => {
-                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
+                    this.uploadFiles(new File([file], this.getRandomFilename(file), {type: file.type}));
                 });
             },
             formatText(val) {
@@ -840,10 +817,14 @@
 
                 return arr;
             },
-            formatImage(url) {
-                return url + this.config.style;
+            formatImage(item) {
+                if (item.url) {
+                    return item.url + this.config.style;
+                }
+
+                return this.formatUrl(item.host) + "/" + item.path + this.config.style;
             },
-            handleOpen() {
+            handleChoose() {
                 if (this.simple) {
                     this.$refs.upload.fileList = [];
 
@@ -861,30 +842,28 @@
                 localStorage.setItem('isSmartSort', val ? 1 : 0);
             },
             getFiles() {
-                let that = this;
-
-                this.clear();
+                this.clean();
 
                 if (!this.urls.index) {
                     return false;
                 }
 
-                LoadingBar.start();
+                if (this.simple) {
+                    return false;
+                }
 
-                axios.get(this.urls.index, {params: this.query}).then(function (res) {
-                    that.fileList = res.data.children.data;
-                    that.query.total = res.data.children.total;
-                    that.parentFolder = res.data.parent;
+                API.getFiles(this.urls.index, this.query).then(res => {
+                    this.fileList = res.children.data;
+                    this.query.total = res.children.total;
+                    this.parentFolder = res.parent;
 
-                    that.currentFolder = res.data.parent;
+                    this.currentFolder = res.parent;
 
-                    that.form.pid = res.data.parent[that.config.key];
+                    this.createFolder.form.pid = res.parent[this.config.key];
 
-                    LoadingBar.finish();
-                }).catch(function (error) {
-                    console.error(error);
-
-                    LoadingBar.error();
+                    if (this.config.strict) {
+                        this.checkPolicy();
+                    }
                 });
             },
             handleOpenFolder(folder) {
@@ -904,17 +883,11 @@
 
                 clearTimeout(time);
 
-
                 time = setTimeout(function () {
-                    // this.fileList[index]['checked'] = true;
-
                     that.fileList[index]['checked'] = !that.fileList[index]['checked'];
                     that.fileList[index]['order'] = ++that.order;
                     that.currentFile = that.fileList[index];
                 }, 300);
-            },
-            handleUnSelect(index) {
-                this.fileList[index]['checked'] = false;
             },
             handleAdd() {
                 this.cloud.form.items.push({
@@ -927,28 +900,17 @@
             },
             handleSlice(index) {
                 switch (Object.prototype.toString.call(this.currentValue)) {
-                    case '[object String]':
-                        this.currentValue = '';
-                        break;
                     case '[object Array]':
                         let type = Object.prototype.toString.call(this.currentValue[0]);
                         switch (type) {
                             case '[object String]':
-                                this.currentValue.splice(index, 1);
-                                break;
                             case '[object Object]':
                                 this.currentValue.splice(index, 1);
-                                break;
-                            case '[object Undefined]':
-                                this.currentValue = '';
                                 break;
                             default:
                                 this.currentValue = '';
                                 break;
                         }
-                        break;
-                    case '[object Null]':
-                        this.currentValue = '';
                         break;
                     default:
                         this.currentValue = '';
@@ -958,17 +920,16 @@
                 event.preventDefault()
             },
             handleAddFolder() {
-                let that = this;
-                that.visible3 = true;
+                this.$refs.createFolderForm.resetFields();
 
-                try {
-                    this.$refs.form.resetFileds();
-                } catch (e) {
-
-                }
+                this.createFolder.visible = true;
             },
-            clear() {
-                this.form.name = null;
+            clean() {
+                this.createFolder.visible = false;
+                this.rename.visible = false;
+                this.cloud.visible = false;
+
+                this.createFolder.form.name = null;
 
                 this.currentFile = {
                     path: null,
@@ -995,8 +956,8 @@
                     visible: visible,
                 };
 
-                axios.patch(this.urls.visible, form).then(res => {
-                    if (res.data.status === 200) {
+                API.patchFileVisible(this.urls.visible, form).then(res => {
+                    if (res.status === 200) {
                         this.$Notice.success({
                             title: '设置成功',
                         });
@@ -1005,7 +966,7 @@
                     } else {
                         this.$Notice.error({
                             title: '设置失败',
-                            desc: res.data.msg
+                            desc: res.msg
                         });
                     }
                 }).catch(error => {
@@ -1013,12 +974,20 @@
                 });
             },
             handleRename(item) {
-                this.visible5 = true;
+                this.rename.visible = true;
                 this.rename.form.id = item.id;
                 this.rename.form.name = item.name;
             },
             handleCopyLink(item) {
-                this.copy(item.url, '链接复制成功');
+                let url;
+
+                if (item.url) {
+                    url = item.url;
+                } else {
+                    url = this.formatUrl(item.host) + "/" + item.path;
+                }
+
+                this.copy(url, '链接复制成功');
             },
             copy(val, msg) {
                 const input = document.createElement('input');
@@ -1036,23 +1005,44 @@
 
                 document.body.removeChild(input);
             },
+            getFilename(filename) {
+                if (filename) {
+                    return filename.substring(0, filename.indexOf('?') === -1 ? filename.length : filename.indexOf('?')).substr(filename.lastIndexOf('/') + 1);
+                }
+
+                return null;
+            },
             handleCopyMDLink(item) {
-                let mdUrl = '![' + item.url.substring(0, item.url.indexOf('?') === -1 ? item.url.length : item.url.indexOf('?')).substr(item.url.lastIndexOf('/') + 1) + ']' + '(' + item.url + ')';
+                let url;
+
+                if (item.url) {
+                    url = item.url;
+                } else {
+                    url = this.formatUrl(item.host) + "/" + item.path;
+                }
+
+                let mdUrl = '![' + url.substring(0, url.indexOf('?') === -1 ? url.length : url.indexOf('?')).substr(url.lastIndexOf('/') + 1) + ']' + '(' + url + ')';
 
                 this.copy(mdUrl, 'MarkDown 链接复制成功');
             },
             handleDownload(item) {
-                window.open(item.url);
+                let url;
+
+                if (item.url) {
+                    url = item.url;
+                } else {
+                    url = this.formatUrl(item.host) + "/" + item.path;
+                }
+
+                window.open(url);
             },
             handleDestroy(item) {
-                let res = _([item]).map().filter().flatMap(this.config.key).value();
-
                 let form = {
-                    ids: res,
+                    ids: [item[this.config.key]],
                 };
 
-                axios.delete(this.urls.delete, {data: form}).then(res => {
-                    if (res.data.status === 200) {
+                API.delFiles(this.urls.delete, form).then(res => {
+                    if (res.status === 200) {
                         this.$Notice.success({
                             title: '删除成功',
                             desc: ' '
@@ -1061,7 +1051,7 @@
                     } else {
                         this.$Notice.error({
                             title: '删除失败',
-                            desc: res.data.msg
+                            desc: res.msg,
                         });
                     }
                 }).catch(error => {
@@ -1069,8 +1059,8 @@
                 });
             },
             handleReview(val) {
-                this.visible2 = true;
-                this.currentImage = val;
+                this.imageReview.visible = true;
+                this.imageReview.currentImage = val;
 
                 event.preventDefault()
             },
@@ -1083,21 +1073,43 @@
                     desc: '请上传以下格式文件 ' + this.config.format.join('|')
                 });
             },
-            handleMaxSize() {
+            handleExceededSize() {
                 Notice.warning({
                     title: '文件大小错误',
                     desc: '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件'
                 });
             },
-            beforeUpload(file) {
+            handleBeforeUpload(file) {
+                let key;
+
                 if (this.simple) {
-                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
+                    key = this.config.gateway + '_' + this.simple + '_policy';
+                } else {
+                    if (this.config.strict) {
+                        key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+                        let policy = JSON.parse(localStorage.getItem(key));
+
+                        this.headers = policy.value;
+                    } else {
+                        key = this.config.gateway + '_policy';
+                    }
+                }
+
+                let that = this;
+                let policy = JSON.parse(localStorage.getItem(key));
+
+                this.headers = policy.value;
+
+                if (this.simple) {
+                    setTimeout(function () {
+                        that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+                    }, 1000);
 
                     return false;
                 }
 
                 if (this.config.random) {
-                    this.uploadFiles(new File([file], this.getRandomName(file), {type: file.type}));
+                    this.uploadFiles(new File([file], this.getRandomFilename(file), {type: file.type}));
 
                     return false;
                 } else {
@@ -1107,25 +1119,24 @@
                 }
             },
             handleUpload() {
-                this.visible4 = true;
-                this.cloud.form.pid = this.form.pid;
+                this.cloud.visible = true;
+                this.cloud.form.pid = this.createFolder.form.pid;
             },
             handleSubmit() {
-                this.$refs.cloud.validate((valid) => {
+                this.$refs.cloudForm.validate((valid) => {
                     if (valid) {
-                        axios.post(this.urls.remote, this.cloud.form).then(res => {
-                            if (res.data.status === 200) {
+                        API.getFilesByServer(this.urls.remote, this.cloud.form).then(res => {
+                            if (res.status === 200) {
                                 Notice.success({
                                     title: '文件上传成功',
                                     desc: '',
                                 });
 
-                                this.visible4 = false;
                                 this.getFiles();
                             } else {
                                 Notice.error({
                                     title: '文件上传失败',
-                                    desc: res.data.msg,
+                                    desc: res.msg,
                                 });
                             }
                         }).catch(error => {
@@ -1139,39 +1150,26 @@
                     }
                 });
             },
-            getRandomName(file) {
+            getRandomFilename(file) {
                 return Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
             },
             handleCancel() {
                 this.objectList = [];
-                this.visible4 = false;
             },
-            handleCutOver(val) {
-                let that = this;
+            handleChangeImage(flag) {
+                let index = this.images.findIndex((o) => {
+                    return o.url === this.imageReview.currentImage.url
+                });
 
-                if (val) {
-                    let index = _.findIndex(that.images, function (o) {
-                        return o.url === that.currentImage.url;
-                    });
-
+                if (flag) {
                     index = !index ? this.images.length : index;
 
-                    this.currentImage = this.images[index - 1];
+                    this.imageReview.currentImage = this.images[index - 1];
                 } else {
-                    let index = _.findIndex(that.images, function (o) {
-                        return o.url === that.currentImage.url;
-                    });
-
                     index = (index + 1) === this.images.length ? -1 : index;
 
-                    this.currentImage = this.images[index + 1];
+                    this.imageReview.currentImage = this.images[index + 1];
                 }
-            },
-            handleCloseReview() {
-                this.visible2 = false;
-            },
-            handleCloseFolder() {
-                this.visible3 = false;
             },
             checkFile(file) {
                 let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
@@ -1191,25 +1189,36 @@
                     return false;
                 }
 
-                let form = {};
-                form.path = this.parentFolder.path + '/' + file.name;
+                let form = {
+                    path: this.parentFolder.path + '/' + file.name,
+                };
 
-                axios.post(this.urls.check, form).then(res => {
-                    if (res.data.status === 200) {
-                        this.uploadFiles(file);
-                    } else {
+                if (this.urls.check) {
+                    API.checkFile(this.urls.check, form).then(res => {
+                        console.log(res.status)
+                        if (res.status == 200) {
+                            this.uploadFiles(file);
+                        } else {
+                            Notice.warning({
+                                title: res.msg,
+                                desc: '请修改【' + file.name + '】文件名',
+                            });
+                        }
+                    });
+                } else {
+                    API.headFile(this.formatUrl(this.urls.upload) + '/' + form.path).then(res => {
                         Notice.warning({
-                            title: res.data.msg,
-                            desc: '请修改' + file.name + '文件名'
+                            title: '文件已存在',
+                            desc: '请修改【' + file.name + '】文件名'
                         });
-                    }
-                }).catch(error => {
-                    console.error(error);
-                });
+                    }).catch(error => {
+                        this.uploadFiles(file);
+                    });
+                }
             },
             uploadFiles(file) {
                 if (this.simple) {
-                    this.headers.key = file.name;
+                    this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
                 } else {
                     this.headers.key = this.parentFolder.path + '/' + file.name;
                 }
@@ -1217,13 +1226,18 @@
                 this.$refs.upload.post(file);
             },
             checkPolicy() {
-                let that = this;
-                if (localStorage.getItem(that.config.gateway + '_policy')) {
-                    let policy = JSON.parse(localStorage.getItem(that.config.gateway + '_policy'));
+                let key;
 
-                    if (moment().isBefore(moment(policy.expire_at))) {
-                        that.headers = policy.value;
-                    } else {
+                if (this.config.strict) {
+                    key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+                } else {
+                    key = this.config.gateway + '_policy';
+                }
+
+                if (localStorage.getItem(key)) {
+                    let policy = JSON.parse(localStorage.getItem(key));
+
+                    if (new Date() > new Date(policy.expire_at)) {
                         this.getPolicy();
                     }
                 } else {
@@ -1231,16 +1245,37 @@
                 }
             },
             getPolicy() {
-                let that = this;
-                axios.get(this.urls.policy).then(function (res) {
-                    that.headers = res.data.data;
+                if (!this.urls.policy) {
+                    this.$Notice.info({
+                        title: '请填写获取策略地址',
+                    });
 
+                    return false;
+                }
+
+                let form = {
+                    path: this.currentFolder.path,
+                };
+
+                if (this.simple) {
+                    form.path = this.simple;
+                }
+
+                API.getPolicy(this.urls.policy, form).then(res => {
                     let policy = {};
-                    policy.value = that.headers;
-                    policy.expire_at = moment().add(res.data.expire, 's');
+                    policy.value = res.data;
+                    policy.expire_at = new Date(new Date().getTime() + res.expire * 1000);
 
-                    localStorage.setItem(that.config.gateway + '_policy', JSON.stringify(policy));
-                }).catch(function (error) {
+                    if (this.simple) {
+                        localStorage.setItem(this.config.gateway + '_' + this.simple + '_policy', JSON.stringify(policy));
+                    } else {
+                        if (this.config.strict) {
+                            localStorage.setItem(this.config.gateway + '_' + this.currentFolder.path + '_policy', JSON.stringify(policy));
+                        } else {
+                            localStorage.setItem(this.config.gateway + '_policy', JSON.stringify(policy));
+                        }
+                    }
+                }).catch(error => {
                     console.error(error);
                 });
             },
@@ -1248,9 +1283,9 @@
                 let that = this;
                 let files = [];
 
-                fileList.forEach(function (current, index) {
+                fileList.forEach(function (current) {
                     let obj = {};
-                    obj.url = that.urls.upload + current.name;
+                    obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) +'/'+ current.name;
 
                     files.push(obj);
                 });
@@ -1262,7 +1297,7 @@
                 this.$emit('callback', res);
                 this.dispatch('FormItem', 'on-form-change', res);
             },
-            success(res, file, fileList) {
+            handleSuccess(res, file, fileList) {
                 if (this.simple) {
                     this.simpleInsertImages(fileList);
 
@@ -1276,12 +1311,13 @@
                 });
 
                 if (!!this.urls.return) {
-                    let form = {};
-                    form.filename = this.parentFolder.path + '/' + file.name;
-                    form.size = file.size;
+                    let form = {
+                        filename: this.parentFolder.path + '/' + file.name,
+                        size: file.size,
+                    };
 
-                    axios.post(this.urls.return, form).then(res => {
-                        if (res.data.status === 200) {
+                    API.postFile(this.urls.return, form).then(res => {
+                        if (res.status === 200) {
                             this.$Notice.success({
                                 title: '回调成功',
                                 desc: 'client'
@@ -1298,7 +1334,7 @@
                         console.error(error);
                     });
                 } else {
-                    if (res.status === 200) {
+                    if (res.status == 200) {
                         Notice.success({
                             title: '上传成功',
                             desc: 'server'
@@ -1313,10 +1349,7 @@
                     }
                 }
             },
-            remove() {
-
-            },
-            error(err) {
+            handleError(err) {
                 console.error(err);
 
                 Notice.error({
@@ -1324,42 +1357,54 @@
                     desc: '请联系管理员'
                 });
             },
+            orderBy(field) {
+                return function (a, b) {
+                    return a[field] - b[field];
+                }
+            },
             insertImages() {
+                let that = this;
                 //过滤目录
-                let items = _.filter(this.fileList, function (o) {
-                    return o.checked && o.type === "file";
-                });
-
-                items = _.orderBy(items, ['order'], ['asc']);
+                let items = this.fileList.filter(this.filterFileChecked).sort(this.orderBy('order'));
 
                 let files = [];
 
-                this.uploadList.forEach(function (current, index) {
+                this.uploadList.forEach(function (current) {
                     let obj = {};
-                    obj.url = current.url;
+
+                    if (current.url) {
+                        obj.url = current.url;
+                    } else {
+                        obj.url = that.formatUrl(current.host) + '/' + current.path;
+                    }
 
                     files.push(obj);
                 });
 
-                items.forEach(function (current, index) {
+                items.forEach(function (current) {
                     let obj = {};
-                    obj.url = items[index].url;
+
+                    if (current.url) {
+                        obj.url = current.url;
+                    } else {
+                        obj.url = that.formatUrl(current.host) + '/' + current.path;
+                    }
 
                     files.push(obj);
                 });
 
                 if (this.isSmartSort) {
-                    files = _.sortBy(files, [function (o) {
+                    files = sortBy(files, [function (o) {
                         return o.url;
                     }]);
                 }
 
                 if (files.length > this.max) {
-                    let msg = '图片最多选择' + this.max + '张,多选部分将被舍弃';
                     Notice.info({
                         title: '提示',
-                        desc: msg
+                        desc: '图片最多选择' + this.max + '张,多选部分将被舍弃',
                     });
+
                     files = files.slice(0, this.max);
                 }
 
@@ -1391,20 +1436,24 @@
             handleCopy() {
                 this.actionType = 'copy';
 
-                let res = _(this.fileList).map().filter(function (o) {
-                    return o.checked;
-                }).flatMap(this.config.key).value();
-
-                this.objectList = res;
+                this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
+            },
+            flatMapKey(item) {
+                return item[this.config.key];
+            },
+            filterChecked(item) {
+                return item.checked;
+            },
+            filterFileChecked(item) {
+                return item.checked && item.type === 'file';
+            },
+            filterUrl(item) {
+                return item.url;
             },
             handleCut() {
                 this.actionType = 'cut';
 
-                let res = _(this.fileList).map().filter(function (o) {
-                    return o.checked;
-                }).flatMap(this.config.key).value();
-
-                this.objectList = res;
+                this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
             },
             handleStick() {
                 let form = {
@@ -1413,7 +1462,7 @@
                     folder_id: this.currentFolder[this.config.key],
                 };
 
-                axios.post(this.urls.paste, form).then(res => {
+                API.postFiles(this.urls.paste, form).then(res => {
                     if (res.status === 200) {
                         this.$Notice.success({
                             title: '操作成功',
@@ -1442,7 +1491,7 @@
                 this.query.page = 1;
                 this.getFiles();
             },
-            handleReload() {
+            handleRefresh() {
                 this.getFiles();
                 Notice.success({
                     title: '刷新成功',
@@ -1450,26 +1499,23 @@
                 });
             },
             handleDelete() {
-                let that = this;
-                let res = _(this.fileList).map().filter(function (o) {
-                    return o.checked;
-                }).flatMap(that.config.key).value();
+                let res = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
 
                 let form = {
-                    ids: res
+                    ids: res,
                 };
 
-                axios.delete(this.urls.delete, {data: form}).then(res => {
-                    if (res.data.status === 200) {
+                API.delFiles(this.urls.delete, form).then(res => {
+                    if (res.status === 200) {
                         Notice.success({
                             title: '删除成功',
                             desc: ' '
                         });
-                        that.getFiles();
+                        this.getFiles();
                     } else {
                         Notice.error({
                             title: '删除失败',
-                            desc: res.data.msg
+                            desc: res.msg,
                         });
                     }
                 }).catch(error => {
@@ -1477,29 +1523,23 @@
                 });
             },
             handleReset() {
-                _.map(this.fileList, function (o) {
+                this.fileList.map(function (o) {
                     o.checked = false;
                     o.order = 0;
                 });
             },
-            clean() {
-                this.visible3 = false;
-                this.form.name = null;
-            },
             handleRenameSubmit() {
-                this.loading1 = true;
+                this.rename.loading = true;
 
                 this.$refs.renameForm.validate((valid) => {
                     if (valid) {
-                        axios.put(this.urls.rename, this.rename.form).then(res => {
+                        API.putFileName(this.urls.rename, this.rename.form).then(res => {
                             if (res.status === 200) {
                                 this.$Notice.success({
                                     title: '操作成功',
                                     desc: ' ',
                                 });
 
-                                this.loading1 = false;
-                                this.visible5 = false;
                                 this.getFiles();
                             } else {
                                 this.$Notice.error({
@@ -1507,7 +1547,10 @@
                                     desc: res.msg,
                                 });
                             }
+
+                            this.rename.loading = false;
                         }).catch(error => {
+                            this.rename.loading = false;
                             console.error(error);
                         });
                     } else {
@@ -1518,34 +1561,34 @@
                     }
                 });
             },
-            handleCreateFolder() {
-                let that = this;
+            handleSubmitFolder() {
+                this.createFolder.loading = true;
 
-                this.loading2 = true;
-
-                this.$refs.form.validate((valid) => {
+                this.$refs.createFolderForm.validate((valid) => {
                     if (valid) {
-                        axios.post(this.urls.create, this.form).then(function (res) {
-                            if (res.data.status === 200) {
+                        API.postFolder(this.urls.create, this.createFolder.form).then(res => {
+                            if (res.status === 200) {
                                 Notice.success({
                                     title: '目录创建成功',
                                     desc: ' '
                                 });
-                                that.clean();
 
-                                this.loading2 = false;
-
-                                that.getFiles();
+                                this.getFiles();
                             } else {
                                 Notice.error({
                                     title: '目录创建失败',
-                                    desc: res.data.msg
+                                    desc: res.msg,
                                 });
                             }
-                        }).catch(function (error) {
+
+                            this.createFolder.loading = false;
+                        }).catch(error => {
+                            this.createFolder.loading = false;
                             console.error(error);
                         });
                     } else {
+                        this.createFolder.loading = false;
+
                         Notice.warning({
                             title: '表单输入有误',
                             desc: '请检查'
@@ -1562,7 +1605,7 @@
         list-style: none
     }
 
-    .demo-upload-list {
+    .xayah-upload-list {
         display: inline-block;
         width: 60px;
         height: 60px;
@@ -1577,32 +1620,30 @@
         margin-right: 4px;
     }
 
-    .demo-upload-list1 {
+    .xayah-object-list {
         display: inline-block;
         width: 100px;
         height: 100px;
         text-align: center;
-        line-height: 60px;
         border: 1px solid transparent;
         border-radius: 4px;
-        overflow: hidden;
         background: #fff;
         position: relative;
         box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
         margin-right: 4px;
     }
 
-    .demo-upload-list img {
+    .xayah-upload-list img {
         width: 100%;
         height: 100%;
     }
 
-    .demo-upload-list1 img {
+    .xayah-object-list img {
         width: 100%;
-        height: 100%;
+        height: 98px;
     }
 
-    .demo-upload-list-cover {
+    .xayah-upload-list-cover {
         display: none;
         position: absolute;
         top: 0;
@@ -1612,42 +1653,48 @@
         background: rgba(0, 0, 0, .6);
     }
 
-    .demo-upload-list-cover2 {
-        display: block;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, .6);
-    }
-
-    .demo-upload-list:hover .demo-upload-list-cover {
+    .xayah-upload-list:hover .xayah-upload-list-cover {
         display: block;
     }
 
-    .demo-upload-list-cover i {
+    .xayah-upload-list-cover i {
         color: #fff;
         font-size: 20px;
         cursor: pointer;
         margin: 0 2px;
     }
 
-    .demo-upload-list-cover2 i {
-        color: #fff;
-        font-size: 20px;
-        cursor: pointer;
-        margin: 0 2px;
-    }
-
-    .demo-upload-list-cover1 i {
-        color: #fff;
-        font-size: 20px;
-        cursor: pointer;
-        margin: 0 5px;
-    }
-
-    .demo-active {
+    .xayah-drag-active {
         display: none !important;
     }
+
+    .xayah-help-icon {
+        font-size: 20px;
+        color: #999;
+        -webkit-transition: color .2s ease;
+        transition: color .2s ease;
+        position: relative;
+        top: 1px;
+    }
+
+    .xayah-display-inline {
+        display: inline;
+    }
+
+    .xayah-display-none {
+        display: none;
+    }
+
+    .xayah-create-folder {
+        height: 100px;
+        width: 100px;
+        line-height: 100px;
+    }
+
+    .xayah-file-list {
+        overflow: visible;
+        vertical-align: top;
+        margin-bottom: 30px;
+    }
+
 </style>
