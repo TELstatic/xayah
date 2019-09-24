@@ -245,15 +245,16 @@
                         </div>
                     </Col>
                     <Col span="6">
-                        <Card v-if="!!currentFile.url">
+                        <Card v-if="!!currentFile.path">
                             <p slot="title">
                                 <Icon type="ios-film-outline"></Icon>
                                 附件信息
                             </p>
                             <ul>
                                 <li>
-                                <span>
-                                    <img :src="currentFile.url" style="width: 200px;height: 200px;"/>
+                                <span style="text-align: center">
+                                    <img v-if="isImage(currentFile)" :src="formatImage(currentFile)" style="width: 200px;height: 200px;"/>
+                                    <Icon type="ios-document-outline" v-else size="50"></Icon>
                                 </span>
                                 </li>
                                 <li>
@@ -723,10 +724,9 @@
             },
         },
         watch: {
-            value() {
-                this.currentValue = this.value;
+            value(val) {
+                this.setCurrentValue(val);
             },
-
             cloud: {
                 deep: true,
                 handler(newValue, oldValue) {
@@ -895,7 +895,11 @@
                     return item.url + this.config.style;
                 }
 
-                return this.formatUrl(item.host) + "/" + item.path + this.config.style;
+                if (item.host) {
+                    return this.formatUrl(item.host) + "/" + item.path + this.config.style;
+                }
+
+                return null;
             },
             isImage(item) {
                 let suffix;
@@ -997,7 +1001,8 @@
                         }
                         break;
                     default:
-                        this.currentValue = '';
+                        this.setCurrentValue(null);
+                        this.$emit('input', null);
                         break;
                 }
 
@@ -1018,11 +1023,19 @@
                         }
                         break;
                     default:
-                        this.currentValue = '';
+                        this.setCurrentValue(null);
+                        this.$emit('input', null);
                         break;
                 }
 
                 event.preventDefault();
+            },
+            setCurrentValue(value) {
+                if (value === this.currentValue) {
+                    return;
+                }
+
+                this.currentValue = value;
             },
             handleAddFolder() {
                 this.$refs.createFolderForm.resetFields();

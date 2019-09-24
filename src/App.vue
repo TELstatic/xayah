@@ -8,6 +8,7 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
+                         @cleans="demo"
                          @callback="callback"
                          :config="config">
                     <div slot="tips" style="color: red">
@@ -129,11 +130,8 @@
                 visable: false,
                 form: {
                     title: null,
-                    images: [
-                        {
-                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
-                        }
-                    ],
+                    images: null,
+                    // images: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
                     items: [
                         {
                             sku: null,
@@ -235,32 +233,60 @@
                     }
                 });
             },
-            handleReset() {
-                console.log('重置')
+            demo() {
                 this.form = {
-                    images: [
-                        {
-                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
-                        }
-                    ],
-                    items: [
-                        {
-                            sku: null,
-                            module: null,
-                            standard: null,
-                            price: null,
-                            reserve: null,
-                            images: null,
-                        }, {
-                            sku: null,
-                            module: null,
-                            standard: null,
-                            price: null,
-                            reserve: null,
-                            images: null,
-                        }
-                    ]
-                };
+                    images: null
+                }
+                console.log('重置 内部')
+            },
+            handleReset() {
+
+                var time = localStorage.getItem('time') ? localStorage.getItem('time') : 1;
+
+                localStorage.setItem('time', time++)
+                this.form = {
+                    images: null
+                }
+
+                let that = this;
+
+                // setTimeout(function () {
+
+                    that.form = {
+                        images: [
+                            {
+                                url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                            }
+                        ],
+                        items: [
+                            {
+                                sku: null,
+                                module: null,
+                                standard: null,
+                                price: null,
+                                reserve: null,
+                                images: '//canarys.oss-cn-shanghai.aliyuncs.com/rakan/default/XPnkavz1/sparrow/hn_wssc.zip',
+                            }, {
+                                sku: null,
+                                module: null,
+                                standard: null,
+                                price: null,
+                                reserve: null,
+                                images: null,
+                            }
+                        ]
+                    };
+                // }, 1)
+
+
+                // if (localStorage.getItem('time') % 2 == 0) {
+                //     this.form = {
+                //         images: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                //     }
+                // } else {
+
+                // }
+
             },
             clear() {
                 this.form = {
