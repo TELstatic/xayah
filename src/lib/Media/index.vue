@@ -2,11 +2,18 @@
     <div class="xayah-display-inline">
         <div class="xayah-upload-list" v-for="(item,index) in images">
             <img :src="item.url" @dragstart='handleDragStart($event,index)' @drop='handleDrop($event,index)'
-                 @dragover='handleDragOver($event,index)' @click="handleDropActive">
+                 @dragover='handleDragOver($event,index)' @click="handleDropActive" v-if="isImage(item)">
+            <Icon type="ios-document-outline" v-else
+                  @dragstart='handleDragStart($event,index)' @drop='handleDrop($event,index)'
+                  @dragover='handleDragOver($event,index)' @click="handleDropActive"
+                  size="50">
+            </Icon>
             <div class="xayah-upload-list-cover" v-bind:class="{ 'xayah-drag-active': isActive }"
                  @click="handleDropActive">
                 <Icon type="ios-eye-outline" @click.native.stop="handleReview(item)"></Icon>
                 <Icon type="ios-trash-outline" @click.native.stop="handleSlice(index)"></Icon>
+                <Icon type="ios-download-outline" @click.native.stop="handleDownload(item)"></Icon>
+                <Icon type="ios-refresh-circle-outline" @click.native.stop="handleClean"></Icon>
             </div>
         </div>
         <div class="xayah-display-inline" v-if="images.length<max">
@@ -122,7 +129,7 @@
                             <Icon type="ios-add" size="60" class="xayah-create-folder"></Icon>
                         </div>
                         <div class="xayah-object-list xayah-file-list" v-for="(item,index) in fileList">
-                            <span v-if="item.size">
+                            <span v-if="isImage(item)">
                                 <Dropdown trigger="contextMenu">
                                     <span v-if="urls.visible" style="display: block;height: 98px;">
                                         <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
@@ -161,7 +168,7 @@
                                     </DropdownMenu>
                                 </Dropdown>
                             </span>
-                            <span v-else>
+                            <span v-else-if="item.size===0">
                                  <Dropdown trigger="contextMenu">
                                     <Icon type="ios-folder-open"
                                           @click="handleSelect(index)"
@@ -184,6 +191,53 @@
                                         {{item.name}}
                                     </span>
                                 </p>
+                            </span>
+                            <span v-else>
+                                 <Dropdown trigger="contextMenu">
+                                    <span v-if="urls.visible" style="display: block;height: 98px;">
+                                        <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
+                                             <Icon type="ios-document-outline"
+                                                   @click="handleSelect(index)"
+                                                   @click.ctrl="handleOpenFolder(item)"
+                                                   @dblclick.native="handleOpenFolder(item)"
+                                                   size="60" class="xayah-create-folder"></Icon>
+                                        </Badge>
+                                    </span>
+                                    <span v-else style="display: block;height: 98px">
+                                         <Icon type="ios-document-outline"
+                                               @click="handleSelect(index)"
+                                               @click.ctrl="handleOpenFolder(item)"
+                                               @dblclick.native="handleOpenFolder(item)"
+                                               size="60" class="xayah-create-folder"></Icon>
+                                    </span>
+                                    <p style="position:relative;line-height: 20px">
+                                        <span style="float: left;">
+                                            <Checkbox v-model="item.checked"></Checkbox>
+                                        </span>
+                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                            {{item.name}}
+                                        </span>
+                                    </p>
+                                    <DropdownMenu slot="list">
+                                        <DropdownItem v-if="!item.visible && urls.visible"
+                                                      @click.prevent.native="handleSetVisible(item,1)">设置公开
+                                        </DropdownItem>
+                                        <DropdownItem v-if="item.visible && urls.visible"
+                                                      @click.prevent.native="handleSetVisible(item,0)">设置私有
+                                        </DropdownItem>
+                                        <DropdownItem v-if="urls.rename"
+                                                      @click.prevent.native="handleRename(item)">重命名
+                                        </DropdownItem>
+                                        <DropdownItem @click.prevent.native="handleCopyLink(item)">复制链接</DropdownItem>
+                                        <DropdownItem
+                                                @click.prevent.native="handleCopyMDLink(item)">复制MarkDown链接
+                                        </DropdownItem>
+                                        <DropdownItem @click.prevent.native="handleDownload(item)">下载文件</DropdownItem>
+                                        <DropdownItem v-if="urls.delete" @click.prevent.native="handleDestroy(item)"
+                                                      style="color: #ed4014">删除
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
                             </span>
                         </div>
                     </Col>
@@ -241,8 +295,13 @@
                 ></Page>
             </div>
             <div slot="footer">
-                <ButtonGroup style="float: left" v-if="config.resource">
-                    <Button icon="logo-github" type="text" to="//github.com/telstatic/xayah" target="_blank">源码</Button>
+                <ButtonGroup style="float: left">
+                    <Button icon="logo-github" v-if="config.resource" type="text" to="//github.com/telstatic/xayah"
+                            target="_blank">源码
+                    </Button>
+                    <Button type="text" v-if="config.last">
+                        <img src="https://img.shields.io/npm/v/xayah.svg" alt="最新版本">
+                    </Button>
                 </ButtonGroup>
 
                 <Button type="info" :disabled="insertStatus" @click="insertImages">
@@ -469,6 +528,7 @@
                     resource: false,    //是否显示源码链接
                     debug: false,       //是否开启调试功能
                     strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
+                    last: true,         //是否展示最新版本
                 },
             },
             id: {       //dom ID
@@ -600,6 +660,15 @@
                         },
                     },
                 },
+                suffixList: [
+                    'png',
+                    'jpg',
+                    'jpeg',
+                    'webp',
+                    'gif',
+                    'bmp',
+                    'svg',
+                ],
                 createFolder: {
                     visible: false,
                     loading: false,
@@ -824,6 +893,17 @@
 
                 return this.formatUrl(item.host) + "/" + item.path + this.config.style;
             },
+            isImage(item) {
+                let suffix;
+
+                if (item.url) {
+                    suffix = item.url.substring(item.url.lastIndexOf('.') + 1);
+                } else {
+                    suffix = item.path.substring(item.path.lastIndexOf('.') + 1);
+                }
+
+                return oneOf(suffix, this.suffixList);
+            },
             handleChoose() {
                 if (this.simple) {
                     this.$refs.upload.fileList = [];
@@ -898,6 +978,11 @@
             handleRemove(index) {
                 this.cloud.form.items.splice(index, 1);
             },
+            handleClean() {
+                this.currentValue = '';
+
+                event.preventDefault();
+            },
             handleSlice(index) {
                 switch (Object.prototype.toString.call(this.currentValue)) {
                     case '[object Array]':
@@ -917,7 +1002,7 @@
                         break;
                 }
 
-                event.preventDefault()
+                event.preventDefault();
             },
             handleAddFolder() {
                 this.$refs.createFolderForm.resetFields();
@@ -1285,7 +1370,7 @@
 
                 fileList.forEach(function (current) {
                     let obj = {};
-                    obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) +'/'+ current.name;
+                    obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
 
                     files.push(obj);
                 });
@@ -1651,10 +1736,15 @@
         left: 0;
         right: 0;
         background: rgba(0, 0, 0, .6);
+
     }
 
     .xayah-upload-list:hover .xayah-upload-list-cover {
-        display: block;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+
     }
 
     .xayah-upload-list-cover i {
@@ -1662,6 +1752,7 @@
         font-size: 20px;
         cursor: pointer;
         margin: 0 2px;
+        width: 25px;
     }
 
     .xayah-drag-active {

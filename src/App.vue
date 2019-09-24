@@ -8,7 +8,6 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
-                         simple="rakan"
                          @callback="callback"
                          :config="config">
                 </x-media>
@@ -133,7 +132,7 @@
                             standard: null,
                             price: null,
                             reserve: null,
-                            images: null,
+                            images: '//canarys.oss-cn-shanghai.aliyuncs.com/rakan/default/XPnkavz1/sparrow/hn_wssc.zip',
                         }, {
                             sku: null,
                             module: null,
@@ -180,6 +179,7 @@
                     resource: true,
                     debug: true,
                     strict: true,
+                    last: true,
                 },
                 rules: {
                     title: {
