@@ -10,7 +10,16 @@
                          :max="5"
                          @callback="callback"
                          :config="config">
+                    <div slot="tips" style="color: red">
+                        请选择合适的文件
+                    </div>
+                    插入文件
                 </x-media>
+
+                <Button v-for="item in form.images">
+                    {{item.url}}
+                </Button>
+
             </FormItem>
             <div>
                 <Row>
@@ -179,7 +188,6 @@
                     resource: true,
                     debug: true,
                     strict: true,
-                    last: true,
                 },
                 rules: {
                     title: {
@@ -230,7 +238,11 @@
             handleReset() {
                 console.log('重置')
                 this.form = {
-                    images: [],
+                    images: [
+                        {
+                            url: '//delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg'
+                        }
+                    ],
                     items: [
                         {
                             sku: null,

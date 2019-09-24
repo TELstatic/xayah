@@ -22,6 +22,9 @@
                  @click="handleChoose">
                 <Icon type="ios-camera-outline" size="30"></Icon>
             </div>
+            <slot name="tips">
+
+            </slot>
         </div>
         <Modal
                 v-model="visible"
@@ -296,7 +299,8 @@
             </div>
             <div slot="footer">
                 <ButtonGroup style="float: left">
-                    <Button icon="logo-github" v-if="config.resource" type="text" to="//github.com/telstatic/xayah"
+                    <Button icon="logo-github" v-if="config.resource" type="text"
+                            to="https://github.com/telstatic/xayah"
                             target="_blank">源码
                     </Button>
                     <Button type="text" v-if="config.last">
@@ -528,7 +532,7 @@
                     resource: false,    //是否显示源码链接
                     debug: false,       //是否开启调试功能
                     strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
-                    last: true,         //是否展示最新版本
+                    last: false,         //是否展示最新版本
                 },
             },
             id: {       //dom ID
@@ -979,7 +983,23 @@
                 this.cloud.form.items.splice(index, 1);
             },
             handleClean() {
-                this.currentValue = '';
+                switch (Object.prototype.toString.call(this.currentValue)) {
+                    case '[object Array]':
+                        let type = Object.prototype.toString.call(this.currentValue[0]);
+                        switch (type) {
+                            case '[object String]':
+                            case '[object Object]':
+                                this.currentValue.splice(0, this.currentValue.length);
+                                break;
+                            default:
+                                this.currentValue = '';
+                                break;
+                        }
+                        break;
+                    default:
+                        this.currentValue = '';
+                        break;
+                }
 
                 event.preventDefault();
             },
