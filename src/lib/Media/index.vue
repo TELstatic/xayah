@@ -3,7 +3,8 @@
         <div class="xayah-upload-list" v-for="(item,index) in images">
             <img :src="item.url" @dragstart='handleDragStart($event,index)' @drop='handleDrop($event,index)'
                  @dragover='handleDragOver($event,index)' @click="handleDropActive" v-if="isImage(item)">
-            <Icon type="ios-document-outline" v-else
+            <Icon :custom="formatIcon(item)"
+                  v-else
                   @dragstart='handleDragStart($event,index)' @drop='handleDrop($event,index)'
                   @dragover='handleDragOver($event,index)' @click="handleDropActive"
                   size="50">
@@ -151,6 +152,11 @@
                                         </span>
                                     </p>
                                     <DropdownMenu slot="list">
+                                         <DropdownItem @click.prevent.native="insertImages">
+                                            <slot>
+                                                 插入图片
+                                            </slot>
+                                         </DropdownItem>
                                         <DropdownItem v-if="!item.visible && urls.visible"
                                                       @click.prevent.native="handleSetVisible(item,1)">设置公开
                                         </DropdownItem>
@@ -199,7 +205,7 @@
                                  <Dropdown trigger="contextMenu">
                                     <span v-if="urls.visible" style="display: block;height: 98px;">
                                         <Badge :type="!item.visible ?'success':'info'" :text="!item.visible ?'私有':'公开'">
-                                             <Icon type="ios-document-outline"
+                                             <Icon :custom="formatIcon(item)"
                                                    @click="handleSelect(index)"
                                                    @click.ctrl="handleOpenFolder(item)"
                                                    @dblclick.native="handleOpenFolder(item)"
@@ -207,7 +213,7 @@
                                         </Badge>
                                     </span>
                                     <span v-else style="display: block;height: 98px">
-                                         <Icon type="ios-document-outline"
+                                         <Icon :type="formatIcon(item)"
                                                @click="handleSelect(index)"
                                                @click.ctrl="handleOpenFolder(item)"
                                                @dblclick.native="handleOpenFolder(item)"
@@ -253,7 +259,8 @@
                             <ul>
                                 <li>
                                 <span style="text-align: center">
-                                    <img v-if="isImage(currentFile)" :src="formatImage(currentFile)" style="width: 200px;height: 200px;"/>
+                                    <img v-if="isImage(currentFile)" :src="formatImage(currentFile)"
+                                         style="width: 200px;height: 200px;"/>
                                     <Icon type="ios-document-outline" v-else size="50"></Icon>
                                 </span>
                                 </li>
@@ -318,14 +325,15 @@
         </Modal>
 
         <Modal
-                title="图片预览"
+                title="文件预览"
                 v-model="imageReview.visible"
                 width="60%"
                 :transfer="false"
                 :footerHide="true">
             <div style="text-align: center;width: 100%">
                 <div style="height: 500px;width: 100%;margin: 0 auto;">
-                    <img :src="imageReview.currentImage.url" style="max-width: 100%;max-height: 100%;"/>
+                    <img :src="imageReview.currentImage.url" v-if="isImage(imageReview.currentImage)"
+                         style="max-width: 100%;max-height: 100%;"/>
                 </div>
 
                 <pre>{{getFilename(imageReview.currentImage.url)}}</pre>
@@ -483,6 +491,7 @@
     import {Notice, LoadingBar} from 'iview';
     import VueMarkdown from 'vue-markdown'
     import API from '../../utils/api';
+    import config from '../../config';
 
     function oneOf(value, validList) {
         for (let i = 0; i < validList.length; i++) {
@@ -540,7 +549,7 @@
                 type: String,
                 default: '',
             },
-            max: {      //插入图片限制
+            max: {      //插入文件限制
                 type: Number,
                 default: 1,
             },
@@ -653,13 +662,13 @@
                                     type: 'url',
                                     required: true,
                                     pattern: new RegExp('/^https.?:\\/\\/(([a-zA-Z0-9_-])+(\\.)?)*(:\\d+)?(\\/((\\.)?(\\?)?=?&?[a-zA-Z0-9_-](\\?)?)*)*$/i'),
-                                    message: '请输入正确的图片地址',
+                                    message: '请输入正确的文件地址',
                                 },
                                 name: {
                                     type: 'string',
                                     pattern: /^[\u4E00-\u9FA5AA-Za-z0-9_-]+\.[A-Za-z0-9]+$/,
                                     required: true,
-                                    message: '请输入正确的图片名称',
+                                    message: '请输入正确的文件名称',
                                 },
                             }
                         },
@@ -890,6 +899,9 @@
 
                 return arr;
             },
+            formatIcon(item) {
+                return config.formatIcon(this.getSuffix(item));
+            },
             formatImage(item) {
                 if (item.url) {
                     return item.url + this.config.style;
@@ -901,16 +913,17 @@
 
                 return null;
             },
-            isImage(item) {
-                let suffix;
-
+            getSuffix(item) {
                 if (item.url) {
-                    suffix = item.url.substring(item.url.lastIndexOf('.') + 1);
-                } else {
-                    suffix = item.path.substring(item.path.lastIndexOf('.') + 1);
+                    return item.url.substring(item.url.lastIndexOf('.') + 1);
                 }
 
-                return oneOf(suffix, this.suffixList);
+                if (item.path) {
+                    return item.path.substring(item.path.lastIndexOf('.') + 1);
+                }
+            },
+            isImage(item) {
+                return oneOf(this.getSuffix(item), this.suffixList);
             },
             handleChoose() {
                 if (this.simple) {
@@ -1520,7 +1533,7 @@
                 if (files.length > this.max) {
                     Notice.info({
                         title: '提示',
-                        desc: '图片最多选择' + this.max + '张,多选部分将被舍弃',
+                        desc: '文件最多选择' + this.max + '张,多选部分将被舍弃',
                     });
 
                     files = files.slice(0, this.max);
@@ -1719,6 +1732,8 @@
 </script>
 
 <style scoped>
+    @import url(//at.alicdn.com/t/font_1433693_x9qxkikre1j.css);
+
     li {
         list-style: none
     }

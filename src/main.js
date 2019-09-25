@@ -8,7 +8,6 @@ window.axios = require('axios');
 import Vue from 'vue';
 import App from './App.vue';
 
-
 import iView from 'iview';
 
 Vue.use(iView);
