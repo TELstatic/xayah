@@ -183,9 +183,10 @@
                     gateway: 'oss',
                     folder: false,
                     token: '',
-                    resource: true,
+                    resource: false,
                     debug: true,
                     strict: true,
+                    last: false,
                 },
                 rules: {
                     title: {
@@ -252,30 +253,30 @@
 
                 // setTimeout(function () {
 
-                    that.form = {
-                        images: [
-                            {
-                                url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
-                            }
-                        ],
-                        items: [
-                            {
-                                sku: null,
-                                module: null,
-                                standard: null,
-                                price: null,
-                                reserve: null,
-                                images: '//canarys.oss-cn-shanghai.aliyuncs.com/rakan/default/XPnkavz1/sparrow/hn_wssc.zip',
-                            }, {
-                                sku: null,
-                                module: null,
-                                standard: null,
-                                price: null,
-                                reserve: null,
-                                images: null,
-                            }
-                        ]
-                    };
+                that.form = {
+                    images: [
+                        {
+                            url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }
+                    ],
+                    items: [
+                        {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: '//canarys.oss-cn-shanghai.aliyuncs.com/rakan/default/XPnkavz1/sparrow/hn_wssc.zip',
+                        }, {
+                            sku: null,
+                            module: null,
+                            standard: null,
+                            price: null,
+                            reserve: null,
+                            images: null,
+                        }
+                    ]
+                };
                 // }, 1)
 
 

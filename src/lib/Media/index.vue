@@ -31,7 +31,7 @@
                 v-model="visible"
                 width="1300"
                 :transfer="true"
-                title="媒体库"
+                title="媒体库 "
                 id="xayah">
             <div slot="close">
                 <Icon type="ios-help-circle-outline" class="xayah-help-icon" @click.stop="handleHelp">查看帮助</Icon>
@@ -123,9 +123,13 @@
                             <span slot="open">智能</span>
                             <span slot="close">默认</span>
                         </i-switch>
+
                     </Col>
+                    <Button type="text" size="small" style="float: right">
+                        <img src="https://img.shields.io/badge/npm-v2.2.9--beta-green" alt="当前版本">
+                    </Button>
                 </Row>
-                <Divider/>
+                <Divider style="margin: 0"/>
                 <Row :gutter="24">
                     <Col span="18" style="min-height: 500px;">
                         <div class="xayah-object-list" @click="handleAddFolder" v-if="urls.create"
@@ -307,11 +311,11 @@
             </div>
             <div slot="footer">
                 <ButtonGroup style="float: left">
-                    <Button icon="logo-github" v-if="config.resource" type="text"
+                    <Button icon="logo-github" v-if="config.resource" type="text" size="small"
                             to="https://github.com/telstatic/xayah"
                             target="_blank">源码
                     </Button>
-                    <Button type="text" v-if="config.last">
+                    <Button type="text" ghost size="small" v-if="!config.last">
                         <img src="https://img.shields.io/npm/v/xayah.svg" alt="最新版本">
                     </Button>
                 </ButtonGroup>
@@ -542,7 +546,7 @@
                     resource: false,    //是否显示源码链接
                     debug: false,       //是否开启调试功能
                     strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
-                    last: false,         //是否展示最新版本
+                    last: false,         //是否隐藏最新版本
                 },
             },
             id: {       //dom ID
