@@ -19,10 +19,14 @@
         </div>
         <div class="xayah-display-inline" v-if="images.length<max">
             <div class="xayah-upload-list"
+                 :style="disabled ?'border-color:red':''"
                  :id="id"
                  @click="handleChoose">
-                <Icon type="ios-camera-outline" size="30"></Icon>
+                <Icon type="ios-camera-outline" :style="disabled ?'color:red':''" size="30"></Icon>
             </div>
+            <span v-show="!!error" style="color: red;">
+                {{error}}
+            </span>
             <slot name="tips">
 
             </slot>
@@ -31,7 +35,7 @@
                 v-model="visible"
                 width="1300"
                 :transfer="true"
-                title="媒体库 "
+                title="媒体库"
                 id="xayah">
             <div slot="close">
                 <Icon type="ios-help-circle-outline" class="xayah-help-icon" @click.stop="handleHelp">查看帮助</Icon>
@@ -125,11 +129,11 @@
                         </i-switch>
 
                     </Col>
-                    <Button type="text" size="small" style="float: right">
+                    <Button type="text" size="small" style="float: right;padding: 0;" v-show="config.current">
                         <img src="https://img.shields.io/badge/npm-v2.2.9--beta-green" alt="当前版本">
                     </Button>
                 </Row>
-                <Divider style="margin: 0"/>
+                <Divider :style="config.current ?'margin-top:0':''"/>
                 <Row :gutter="24">
                     <Col span="18" style="min-height: 500px;">
                         <div class="xayah-object-list" @click="handleAddFolder" v-if="urls.create"
@@ -311,11 +315,12 @@
             </div>
             <div slot="footer">
                 <ButtonGroup style="float: left">
-                    <Button icon="logo-github" v-if="config.resource" type="text" size="small"
+                    <Button icon="logo-github" v-if="!config.resource" type="text"
                             to="https://github.com/telstatic/xayah"
                             target="_blank">源码
                     </Button>
-                    <Button type="text" ghost size="small" v-if="!config.last">
+
+                    <Button type="text" style="padding: 0;" v-if="config.last">
                         <img src="https://img.shields.io/npm/v/xayah.svg" alt="最新版本">
                     </Button>
                 </ButtonGroup>
@@ -543,10 +548,12 @@
                     key: 'id',
                     gateway: 'oss',
                     folder: false,      //是否开启目录上传
-                    resource: false,    //是否显示源码链接
+                    resource: false,    //是否隐藏源码链接
                     debug: false,       //是否开启调试功能
                     strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
-                    last: false,         //是否隐藏最新版本
+                    last: false,         //是否显示最新版本
+                    current: false,      //是否显示当前版本
+                    check: false,        //是否检查图片宽高
                 },
             },
             id: {       //dom ID
@@ -564,12 +571,22 @@
                 },
                 default: 'object',
             },
+            width: {
+                default: 0,
+            },
+            height: {
+                default: 0,
+            },
             simple: {   //简单上传模式
                 type: String,
                 default: '',
             },
             value: {
                 default: '',
+            },
+            disabled: {
+                type: Boolean,
+                default: false,
             },
             formatImages: {
                 type: Function,
@@ -620,6 +637,7 @@
                     height: 0,
                     created_at: null
                 },
+                error: null,
                 headers: {},
                 uploadList: [],
                 order: 0,
@@ -930,6 +948,10 @@
                 return oneOf(this.getSuffix(item), this.suffixList);
             },
             handleChoose() {
+                if (this.disabled) {
+                    return;
+                }
+
                 if (this.simple) {
                     this.$refs.upload.fileList = [];
 
@@ -1072,7 +1094,7 @@
                     size: 0,
                     width: 0,
                     height: 0,
-                    created_at: null
+                    created_at: null,
                 };
 
                 this.cloud.form = {
@@ -1203,19 +1225,118 @@
                 document.getElementById('uploadFolder').click();
             },
             handleFormatError() {
+                let error = '请上传以下格式文件 ' + this.config.format.join('|');
+                this.error = error;
+
                 Notice.warning({
                     title: '文件格式错误',
-                    desc: '请上传以下格式文件 ' + this.config.format.join('|')
+                    desc: error,
                 });
             },
             handleExceededSize() {
+                let error = '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件';
+                this.error = error;
+
                 Notice.warning({
                     title: '文件大小错误',
-                    desc: '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件'
+                    desc: error,
                 });
+            },
+            checkFileWidthAndHeight(file) {
+                let that = this;
+
+                let fileReader = new FileReader();
+
+                fileReader.onload = e => {
+                    let src = e.target.result;
+
+                    const image = new Image();
+                    image.onload = function () {
+                        if (typeof that.width === 'number') {
+                            if (that.width && this.width !== that.width) {
+                                let error = '请上传宽为 ' + that.width + ' 的图片';
+                                that.error = error;
+
+                                that.$Notice.warning({
+                                    title: error,
+                                });
+
+                                return false;
+                            }
+                        } else {
+                            if (!!(that.width[0] && that.width[1])) {
+                                if (!((that.width[0] <= this.width) && (that.width[1] >= this.width))) {
+                                    let error = '请上传宽度范围为 ' + that.width[0] + '-' + that.width[1] + ' 的图片';
+                                    that.error = error;
+
+                                    that.$Notice.warning({
+                                        title: error,
+                                    });
+
+                                    return false;
+                                }
+                            } else {
+                                let error = '请修改配置 width,并输入正确的数字或数组';
+
+                                that.error = error;
+
+                                that.$Notice.warning({
+                                    title: error,
+                                });
+
+                                return false;
+                            }
+                        }
+
+                        if (typeof that.height === 'number') {
+                            if (that.height && this.height !== that.height) {
+                                let error = '请上传高为 ' + that.height + ' 的图片';
+                                that.error = error;
+
+                                that.$Notice.warning({
+                                    title: error,
+                                });
+
+                                return false;
+                            }
+                        } else {
+                            if (!!(that.height[0] && that.height[1])) {
+                                if (!((that.height[0] <= this.height) && (that.height[1] >= this.height))) {
+                                    let error = '请上传高度范围为 ' + that.height[0] + '-' + that.height[1] + ' 的图片';
+                                    that.error = error;
+
+                                    that.$Notice.warning({
+                                        title: error,
+                                    });
+
+                                    return false;
+                                }
+                            } else {
+                                let error = '请修改配置 height,并输入正确的数字或数组';
+                                that.error = error;
+
+                                that.$Notice.warning({
+                                    title: error,
+                                });
+
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    };
+
+                    image.src = src;
+                };
+
+                fileReader.readAsDataURL(file);
             },
             handleBeforeUpload(file) {
                 let key;
+
+                if (file.type.indexOf('image') !== 1 && this.config.check) {
+                    this.checkFileWidthAndHeight(file);
+                }
 
                 if (this.simple) {
                     key = this.config.gateway + '_' + this.simple + '_policy';
@@ -1330,7 +1451,6 @@
 
                 if (this.urls.check) {
                     API.checkFile(this.urls.check, form).then(res => {
-                        console.log(res.status)
                         if (res.status == 200) {
                             this.uploadFiles(file);
                         } else {
@@ -1751,6 +1871,7 @@
         border: 1px solid transparent;
         border-radius: 4px;
         overflow: hidden;
+        cursor: pointer;
         background: #fff;
         position: relative;
         box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
@@ -1764,6 +1885,7 @@
         text-align: center;
         border: 1px solid transparent;
         border-radius: 4px;
+        cursor: pointer;
         background: #fff;
         position: relative;
         box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
@@ -1788,7 +1910,10 @@
         left: 0;
         right: 0;
         background: rgba(0, 0, 0, .6);
+    }
 
+    .xayah-upload-list:hover {
+        border: 1px dashed #2d8cf0;
     }
 
     .xayah-upload-list:hover .xayah-upload-list-cover {
@@ -1839,5 +1964,6 @@
         vertical-align: top;
         margin-bottom: 30px;
     }
+
 
 </style>

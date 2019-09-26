@@ -8,8 +8,8 @@
                 <x-media v-model="form.images"
                          :urls="urls"
                          :max="5"
-                         @cleans="demo"
                          @callback="callback"
+                         :disabled="true"
                          :config="config">
                     <div slot="tips" style="color: red">
                         请选择合适的文件
@@ -182,11 +182,7 @@
                     style: '',
                     gateway: 'oss',
                     folder: false,
-                    token: '',
-                    resource: false,
-                    debug: true,
-                    strict: true,
-                    last: false,
+
                 },
                 rules: {
                     title: {
