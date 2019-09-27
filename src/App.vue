@@ -9,11 +9,7 @@
                          :urls="urls"
                          :max="5"
                          @callback="callback"
-                         :disabled="true"
                          :config="config">
-                    <div slot="tips" style="color: red">
-                        请选择合适的文件
-                    </div>
                     插入文件
                 </x-media>
 
@@ -253,7 +249,15 @@
                     images: [
                         {
                             url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
-                        }
+                        }, {
+                            url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }, {
+                            url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }, {
+                            url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        }, {
+                            url: 'http://delii.oss-cn-shanghai.aliyuncs.com/rakan/default/NJGDZQ/San%20Francisco.jpg',
+                        },
                     ],
                     items: [
                         {

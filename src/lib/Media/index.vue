@@ -130,7 +130,7 @@
 
                     </Col>
                     <Button type="text" size="small" style="float: right;padding: 0;" v-show="config.current">
-                        <img src="https://img.shields.io/badge/npm-v2.2.9--beta-green" alt="当前版本">
+                        <img src="https://img.shields.io/badge/npm-v2.2.11--beta-green" alt="当前版本">
                     </Button>
                 </Row>
                 <Divider :style="config.current ?'margin-top:0':''"/>
@@ -160,6 +160,9 @@
                                         </span>
                                     </p>
                                     <DropdownMenu slot="list">
+                                         <DropdownItem @click.prevent.native="handleEditImage(item)">
+                                            编辑图片
+                                         </DropdownItem>
                                          <DropdownItem @click.prevent.native="insertImages">
                                             <slot>
                                                  插入图片
@@ -490,6 +493,19 @@
                 <vue-markdown :source="help.source"></vue-markdown>
             </div>
         </Modal>
+
+        <Modal
+                v-model="cropper.visible"
+                width="700"
+                :footer-hide="true"
+                title="编辑图片">
+            <cropper
+                    :src="cropper.image"
+                    crop-button-text="确认提交"
+                    @on-crop="handleCroped"
+                    @on-close="handleClose"
+            ></cropper>
+        </Modal>
     </div>
 </template>
 <script>
@@ -501,6 +517,7 @@
     import VueMarkdown from 'vue-markdown'
     import API from '../../utils/api';
     import config from '../../config';
+    import Cropper from '../cropper'
 
     function oneOf(value, validList) {
         for (let i = 0; i < validList.length; i++) {
@@ -517,9 +534,21 @@
         name: 'xayah',
         mixins: [Emitter],
         components: {
-            Notice, VueMarkdown,
+            Notice, VueMarkdown, Cropper
         },
         props: {
+            preview: {
+                type: Boolean,
+                default: true
+            },
+            moveStep: {
+                type: Number,
+                default: 4
+            },
+            cropButtonText: {
+                type: String,
+                default: '裁剪'
+            },
             urls: {
                 type: Object,
                 default: {
@@ -603,6 +632,7 @@
         },
         data() {
             return {
+                exampleImageSrc: '',
                 visible: false,
                 fileList: [],
                 currentValue: this.value,
@@ -705,6 +735,10 @@
                     'bmp',
                     'svg',
                 ],
+                cropper: {
+                    visible: false,
+                    image: null,
+                },
                 createFolder: {
                     visible: false,
                     loading: false,
@@ -872,7 +906,11 @@
                         }
                         return temp;
                     case 'string':
-                        return files[0].url;
+                        if (files.length > 0) {
+                            return files[0].url
+                        }
+
+                        return '';
                 }
             },
             formatValue() {
@@ -1107,6 +1145,19 @@
                     ],
                 };
             },
+            handleEditImage(item) {
+                let url;
+
+                if (item.url) {
+                    url = item.url;
+                } else {
+                    url = this.formatUrl(item.host) + '/' + item.path;
+                }
+
+                // this.cropper.image = url
+
+                this.cropper.visible = true;
+            },
             handleSetVisible(item, visible) {
                 let form = {
                     id: item[this.config.key],
@@ -1242,6 +1293,19 @@
                     desc: error,
                 });
             },
+            handleClose() {
+                this.cropper.visible = false;
+            },
+            handleCroped(blob) {
+                let that = this;
+                this.setHeaders();
+
+                let file = new File([blob], Math.random().toString(36).substr(2) + new Date().getTime() + '.png', {type: 'image/png'});
+
+                setTimeout(function () {
+                    that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+                }, 1000);
+            },
             checkFileWidthAndHeight(file) {
                 let that = this;
 
@@ -1331,30 +1395,39 @@
 
                 fileReader.readAsDataURL(file);
             },
-            handleBeforeUpload(file) {
+            setHeaders() {
                 let key;
-
-                if (file.type.indexOf('image') !== 1 && this.config.check) {
-                    this.checkFileWidthAndHeight(file);
-                }
 
                 if (this.simple) {
                     key = this.config.gateway + '_' + this.simple + '_policy';
+
+                    let policy = JSON.parse(localStorage.getItem(key));
+
+                    this.headers = policy.value;
                 } else {
                     if (this.config.strict) {
                         key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+
                         let policy = JSON.parse(localStorage.getItem(key));
 
                         this.headers = policy.value;
                     } else {
                         key = this.config.gateway + '_policy';
+
+                        let policy = JSON.parse(localStorage.getItem(key));
+
+                        this.headers = policy.value;
                     }
                 }
-
+            },
+            handleBeforeUpload(file) {
                 let that = this;
-                let policy = JSON.parse(localStorage.getItem(key));
 
-                this.headers = policy.value;
+                if (file.type.indexOf('image') !== 1 && this.config.check) {
+                    this.checkFileWidthAndHeight(file);
+                }
+
+                this.setHeaders();
 
                 if (this.simple) {
                     setTimeout(function () {
@@ -1558,6 +1631,8 @@
 
                     return false;
                 }
+
+                this.cropper.visible = false;
 
                 this.uploadList.push({
                     type: 'file',
