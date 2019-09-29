@@ -104,19 +104,26 @@
  | urls.policy      | string | true    | ''   | 获取上传策略|
  | urls.delete      | string | true    | ''   | 删除文件或目录|
  | urls.return      | string | true    | ''   | 本地回调地址|               
-| id      | string | false    | null   | Dom ID|
-| max      | int | false    | 1   | 限制插入图片数量|
-| simple | string | false | '' | 简单上传模式 默认上传目录 填写即为启用| 
-| type      | string | false    | 'object'   | 默认返回类型 |
-| config.random      | bool | false    | false   | 使用随机文件名|
-| config.size      | int | false    | 0   | 限制上传文件大小|
-| config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
-| config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
-| config.key      | string | false    | 'id'   |  兼容 MongoDB |
-| config.folder      | bool | false    | false   |  是否允许上传目录 |
-| config.gateway      | string | false    | 'oss'   | 多网关  |
-| config.formatValue      | function | false    |  详见代码   | 格式化 value 值 |
-| config.formatReturn      | function | false    |  详见代码   | 格式化返回值 |
+ | id      | string | false    | null   | Dom ID|
+ | max      | int | false    | 1   | 限制插入图片数量|
+ | simple | string | false | '' | 简单上传模式 默认上传目录 填写即为启用| 
+ | type      | string | false    | 'object'   | 默认返回类型 |
+ | config.random      | bool | false    | false   | 使用随机文件名|
+ | config.size      | int | false    | 0   | 限制上传文件大小|
+ | config.format      | array | false    | ['jpg','png','jpeg']   | 限制上传文件格式|
+ | config.style      | string | false    | ''   | 图片格式化 示例: ?x-oss-process=style/thumb|
+ | config.key      | string | false    | 'id'   |  兼容 MongoDB |
+ | config.folder      | bool | false    | false   |  是否允许上传目录 |
+ | config.gateway      | string | false    | 'oss'   | 多网关  |
+ | config.resource      | bool | false    | false   | 是否隐藏源码链接  |
+ | config.document      | bool | false    | false   | 是否隐藏文档链接  |
+ | config.debug      | bool | false    | false   | 是否开启调试功能  |
+ | config.strict      | bool | false    | false   | 是否开启严格模式  |
+ | config.last      | bool | false    | false   | 是否显示最新版本  |
+ | config.current      | bool | false    | false   | 是否显示当前版本  |
+ | config.check      | bool | false    | false   | 是否检查图片宽高  |
+ | config.formatValue      | function | false    |  详见代码   | 格式化 value 值 |
+ | config.formatReturn      | function | false    |  详见代码   | 格式化返回值 |
 
 
 <div id="events"></div>
@@ -211,61 +218,11 @@
 ### 配套后台
   
   https://github.com/TELstatic/rakan
-
-### TODO
+  https://kodos.cn
     
-    1. 云适配
-        又拍云,腾讯COS
-    2. 多文件类型适配
-        txt,etc.
-    3. 移除冗余扩展包,如 moment ,lodash
-    4. 优化样式,去除内联样式
+### TODO
+    1. 优化样式,去除内联样式
+    
     
 ### 代码贡献
-
-    由于测试及使用环境的限制，本项目中只开发了「阿里云OSS」和「七牛云存储」的相关功能。
-    
-    如果您有其它云存储的需求，或者发现本项目中需要改进的代码，欢迎 Fork 并提交 PR！
-
-
-<div id="log"></div>
-
-### 更新日志
-
-    2.0.9
-        添加文件上传后直接插入功能
-    2.0.10
-        修复上传文件后插入 BUG
-    2.0.11
-        修复上传文件后插入 BUG
-    2.0.12
-        修复进入目录,页码未归一 BUG
-    2.0.13
-        添加伪智能排序
-    2.0.14
-        添加关键词查询
-    2.0.15
-        添加进入目录,关键词未置空 BUG
-    2.0.16
-        开放云上传功能,添加权限隐藏功能
-    2.0.17
-        添加文件粘贴上传功能
-    2.0.18
-        重构文件粘贴上传功能,修复随机文件名 BUG
-    2.0.19-beta
-        添加简单上传模式(多个组件下,存在值混乱 BUG)    
-    2.0.20-beta
-        优化权限控制,修复空父目录上传 BUG            
-    2.1.0-beta
-        新增目录上传
-        新增文件目录复制移动
-        新增文件权限
-        新增文件目录重命名
-        新增文件拖拽排序
-        优化文件预览
-        优化简单上传
-        优化图片列表选中样式
-    2.1.1-beta ~ 2.1.4-beta
-        优化文件名排版样式
-    2.1.5-beta
-        修复 firefox 拖拽无效 BUG
+    如果您有其它需求，或者发现本项目中需要改进的代码，欢迎 Fork 并提交 PR！        

@@ -23,6 +23,6 @@ const suffixList = {
 
 export default {
     formatIcon(suffix) {
-        return suffixList[suffix] ? suffixList[suffix] : 'iconfont icon-unknow';
+        return suffixList[suffix] ? suffixList[suffix] : ' iconfont icon-unknow';
     },
 };

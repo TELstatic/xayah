@@ -156,17 +156,7 @@
                     visible: 'https://canarys.kodos.space/api/file/visible', //设置文件可见性
                     paste: 'https://canarys.kodos.space/api/file/paste',     //复制剪切文件目录
                     rename: 'https://canarys.kodos.space/api/file/rename',   //重命名文件
-
-                    // index: '//canarys.kodos.local:3001/api/file/index',     //获取文件地址
-                    // upload: '//canarys.oss-cn-shanghai.aliyuncs.com',       //上传地址
-                    // create: '//canarys.kodos.local:3001/api/file/create',   //创建目录地址
-                    // check: '//canarys.kodos.local:3001/api/file/check',     //检查文件唯一
-                    // policy: '//canarys.kodos.local:3001/api/file/policy',   //获取上传策略地址
-                    // delete: '//canarys.kodos.local:3001/api/file/batch',    //删除文件或目录地址
-                    // visible: '//canarys.kodos.local:3001/api/file/visible', //设置文件可见性
-                    // paste: '//canarys.kodos.local:3001/api/file/paste',     //复制剪切文件目录
-                    // rename: '//canarys.kodos.local:3001/api/file/rename',   //重命名文件
-
+                    remote:'https://canarys.kodos.space/api/file/rename'
                 },
                 config: {
                     format: [
@@ -177,8 +167,8 @@
                     key: 'id',
                     style: '',
                     gateway: 'oss',
-                    folder: false,
-
+                    folder: true,
+                    remote: true,
                 },
                 rules: {
                     title: {

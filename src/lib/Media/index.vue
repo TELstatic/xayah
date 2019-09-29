@@ -224,7 +224,7 @@
                                         </Badge>
                                     </span>
                                     <span v-else style="display: block;height: 98px">
-                                         <Icon :type="formatIcon(item)"
+                                         <Icon :custom="formatIcon(item)"
                                                @click="handleSelect(index)"
                                                @click.ctrl="handleOpenFolder(item)"
                                                @dblclick.native="handleOpenFolder(item)"
@@ -838,9 +838,16 @@
                 document.getElementById('uploadFolder').addEventListener('change', function () {
                     if (!this.files.length) return;
 
-                    for (let i = 0; i < this.files.length; i++) {
-                        if (that.checkFileSize(this.files[i].size) && that.checkFileType(this.files[i].name)) {
-                            that.uploadFiles(new File([this.files[i]], that.getRandomFilename(this.files[i]), {type: this.files[i].type}));
+                    let files = this.files;
+
+                    for (let i = 0; i < files.length; i++) {
+
+                        if (that.checkFileSize(files[i].size) && that.checkFileType(files[i].name)) {
+                            that.setHeaders();
+
+                            setTimeout(function () {
+                                that.uploadFiles(new File([files[i]], that.getRandomFilename(files[i]), {type: files[i].type}));
+                            }, 100);
                         }
                     }
                 }, false);
@@ -877,8 +884,13 @@
 
                 if (!files.length) return;
 
+                let that = this;
+                this.setHeaders();
+
                 files.forEach(file => {
-                    this.uploadFiles(new File([file], this.getRandomFilename(file), {type: file.type}));
+                    setTimeout(function () {
+                        that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+                    }, 100);
                 });
             },
             formatText(val) {
@@ -1154,7 +1166,7 @@
                     url = this.formatUrl(item.host) + '/' + item.path;
                 }
 
-                // this.cropper.image = url
+                this.cropper.image = url
 
                 this.cropper.visible = true;
             },
@@ -1427,7 +1439,29 @@
                     this.checkFileWidthAndHeight(file);
                 }
 
-                this.setHeaders();
+                let key;
+
+                if (this.simple) {
+                    key = this.config.gateway + '_' + this.simple + '_policy';
+
+                    let policy = JSON.parse(localStorage.getItem(key));
+
+                    this.headers = policy.value;
+                } else {
+                    if (this.config.strict) {
+                        key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+
+                        let policy = JSON.parse(localStorage.getItem(key));
+
+                        this.headers = policy.value;
+                    } else {
+                        key = this.config.gateway + '_policy';
+
+                        let policy = JSON.parse(localStorage.getItem(key));
+
+                        this.headers = policy.value;
+                    }
+                }
 
                 if (this.simple) {
                     setTimeout(function () {
