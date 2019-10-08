@@ -12,11 +12,6 @@
                          :config="config">
                     插入文件
                 </x-media>
-
-                <Button v-for="item in form.images">
-                    {{item.url}}
-                </Button>
-
             </FormItem>
             <div>
                 <Row>
@@ -153,7 +148,7 @@
                     // check: 'https://canarys.kodos.space/api/file/check',     //检查文件唯一
                     policy: 'https://canarys.kodos.space/api/file/policy',   //获取上传策略地址
                     delete: 'https://canarys.kodos.space/api/file/batch',    //删除文件或目录地址
-                    visible: 'https://canarys.kodos.space/api/file/visible', //设置文件可见性
+                    // visible: 'https://canarys.kodos.space/api/file/visible', //设置文件可见性
                     paste: 'https://canarys.kodos.space/api/file/paste',     //复制剪切文件目录
                     rename: 'https://canarys.kodos.space/api/file/rename',   //重命名文件
                     remote:'https://canarys.kodos.space/api/file/rename'
@@ -169,6 +164,7 @@
                     gateway: 'oss',
                     folder: true,
                     remote: true,
+                    width:'100%'
                 },
                 rules: {
                     title: {

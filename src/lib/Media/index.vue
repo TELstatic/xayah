@@ -33,15 +33,10 @@
         </div>
         <Modal
                 v-model="visible"
-                width="1300"
+                :width="config.width"
                 :transfer="true"
                 title="媒体库"
                 id="xayah">
-            <div slot="close">
-                <Icon type="ios-help-circle-outline" class="xayah-help-icon" @click.stop="handleHelp">查看帮助</Icon>
-                <Icon type="ios-close"></Icon>
-            </div>
-
             <div @paste="handlePaste">
                 <Row>
                     <Col span="24">
@@ -130,7 +125,7 @@
 
                     </Col>
                     <Button type="text" size="small" style="float: right;padding: 0;" v-show="config.current">
-                        <img src="https://img.shields.io/badge/npm-v2.2.11--beta-green" alt="当前版本">
+                        <img src="https://img.shields.io/badge/npm-v2.2.13--beta-green" alt="当前版本">
                     </Button>
                 </Row>
                 <Divider :style="config.current ?'margin-top:0':''"/>
@@ -321,6 +316,11 @@
                     <Button icon="logo-github" v-if="!config.resource" type="text"
                             to="https://github.com/telstatic/xayah"
                             target="_blank">源码
+                    </Button>
+
+                    <Button icon="logo-wordpress" v-if="!config.document" type="text"
+                            to="https://telstatic.github.io/xayah/#/"
+                            target="_blank">文档
                     </Button>
 
                     <Button type="text" style="padding: 0;" v-if="config.last">
@@ -578,11 +578,13 @@
                     gateway: 'oss',
                     folder: false,      //是否开启目录上传
                     resource: false,    //是否隐藏源码链接
+                    document: false,    //是否隐藏文档链接
                     debug: false,       //是否开启调试功能
                     strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
-                    last: false,         //是否显示最新版本
-                    current: false,      //是否显示当前版本
-                    check: false,        //是否检查图片宽高
+                    last: false,        //是否显示最新版本
+                    current: false,     //是否显示当前版本
+                    check: false,       //是否检查图片宽高
+                    width: 1300,        //默认媒体库宽度 支持固定 或者 百分比
                 },
             },
             id: {       //dom ID
