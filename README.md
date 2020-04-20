@@ -7,7 +7,7 @@
     <img src="https://img.shields.io/npm/l/xayah.svg?style=flat-square" alt="licence" />
     <img src="https://img.shields.io/npm/dt/xayah.svg?style=flat-square" alt="downloads" />
     <img src="https://img.shields.io/npm/dm/xayah.svg?style=flat-square" alt="downloads" />
-    <img src="https://img.badgesize.io/https://unpkg.com/xayah/dist/xayah.min.js?compression=gzip&style=flat-square&label=JS%20gzip%20size" alt="JS Gzip Size" />    
+    <img src="https://img.badgesize.io/https://unpkg.com/xayah/dist/xayah.min.js?compression=gzip&style=flat-square&label=JS%20gzip%20size" alt="JS Gzip Size" />
 </p>
 
 * [安装](#installation)
@@ -24,18 +24,18 @@
 <div id="usage"></div>
 
 ### [使用](#usage)
-    
+
     app.js
-    
+
     import iView from 'iview';
     Vue.use(iView); //xayah 依赖iView 此代码必须
     import 'iview/dist/styles/iview.css';
-    
+
     import xayah from 'xayah';
     vue.use(xayah);
- 
+
     demo.vue
-     
+
     <template>
         <div>
             <xayah
@@ -88,8 +88,8 @@
             }
         }
     </script>
- 
- 
+
+
 <div id="props"></div>
 
 ### [属性](#props)
@@ -103,10 +103,10 @@
  | urls.check      | string | true    | ''  | 检查文件唯一|
  | urls.policy      | string | true    | ''   | 获取上传策略|
  | urls.delete      | string | true    | ''   | 删除文件或目录|
- | urls.return      | string | true    | ''   | 本地回调地址|               
+ | urls.return      | string | true    | ''   | 本地回调地址|
  | id      | string | false    | null   | Dom ID|
  | max      | int | false    | 1   | 限制插入图片数量|
- | simple | string | false | '' | 简单上传模式 默认上传目录 填写即为启用| 
+ | simple | string | false | '' | 简单上传模式 默认上传目录 填写即为启用|
  | type      | string | false    | 'object'   | 默认返回类型 |
  | config.random      | bool | false    | false   | 使用随机文件名|
  | config.size      | int | false    | 0   | 限制上传文件大小|
@@ -129,19 +129,19 @@
 <div id="events"></div>
 
 ### [事件](#events)
- 
- | name       | return |memo  |   
+
+ | name       | return |memo  |
  | --- | ----- | ------|
- | callback   | 形如:\[\{url:'//demo.oss.com/demo.jpg'\}\]  | 返回选中的图片| 
- 
+ | callback   | 形如:\[\{url:'//demo.oss.com/demo.jpg'\}\]  | 返回选中的图片|
+
 ### 使用说明
 
 配置ID说明
->用途:富文本编辑器插入图片       
+>用途:富文本编辑器插入图片
 >示例:以quill富文本编辑器为例
 
         demo.vue
-         
+
         <template>
                <div>
                    <xayah
@@ -154,7 +154,7 @@
                        @callback="callback"
                    >
                    </xayah>
-                   
+
                    <quill-editor
                        v-model="content"
                        ref="myQuillEditor">
@@ -195,7 +195,7 @@
                        }
                    },
                    mounted(){
-                        this.initEditor();                    
+                        this.initEditor();
                    },
                    methods: {
                        callback(val){
@@ -213,16 +213,23 @@
                        }
                    }
                }
-           </script> 
-    
+           </script>
+
 ### 配套后台
-  
+
   https://github.com/TELstatic/rakan
   https://kodos.cn
-    
+
 ### TODO
     1. 优化样式,去除内联样式
-    
-    
+
+
+### Buy me a coffee
+
+> Liked some of my work? Buy me a coffee (or more likely a beer)
+
+<img src="https://cdn.telstatic.xyz/sponsors/alipay.jpg" width="200" height="300">
+<img src="https://cdn.telstatic.xyz/sponsors/wechat.jpg" width="200" height="300">
+
 ### 代码贡献
-    如果您有其它需求，或者发现本项目中需要改进的代码，欢迎 Fork 并提交 PR！        
+    如果您有其它需求，或者发现本项目中需要改进的代码，欢迎 Fork 并提交 PR！
