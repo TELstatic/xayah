@@ -358,7 +358,7 @@
             上一张
           </Button>
           <Button type="default" @click="handleChangeImage(false)">
-            上一张
+            下一张
             <Icon type="ios-arrow-forward"/>
           </Button>
         </ButtonGroup>
