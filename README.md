@@ -99,6 +99,7 @@
  | value      | mixed | true    | []   | 可以使用 v-model 双向绑定数据|
  | urls.index      | string | true    | ''   | 获取文件|
  | urls.upload      | string | true    | ''   | 上传地址|
+ | urls.alias      | string | false    | ''   | 文件显示地址 或 自定义域名 (七牛上传地址与显示地址不一致问题) |
  | urls.create      | string | true    | ''   | 创建目录|
  | urls.check      | string | true    | ''  | 检查文件唯一|
  | urls.policy      | string | true    | ''   | 获取上传策略|
