@@ -556,6 +556,7 @@
         default: {
           index: '',    //获取文件地址
           upload: '',   //上传地址
+          alias: '',     //显示地址 或者 自定义域名地址
           create: '',   //创建目录地址
           check: '',    //检查文件唯一
           policy: '',   //获取上传策略地址
@@ -1651,8 +1652,13 @@
 
         fileList.forEach(function (current) {
           let obj = {};
-          obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
 
+          if (that.urls.alias) {
+            obj.url = that.formatUrl(that.urls.alias) + '/' + that.formatUrl(that.simple) + '/' + current.name;
+          } else {
+            obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
+          }
+          
           files.push(obj);
         });
 
@@ -1672,10 +1678,18 @@
 
         this.cropper.visible = false;
 
+        var url;
+
+        if (this.urls.alias) {
+          url = this.formatUrl(this.urls.alias) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
+        } else {
+          url = this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
+        }
+
         this.uploadList.push({
           type: 'file',
           checked: true,
-          url: this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name,
+          url: url,
         });
 
         if (!!this.urls.return) {
