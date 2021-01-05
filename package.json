@@ -26,7 +26,7 @@
     "postinstall": "node -e \"try{require('./postinstall')}catch(e){}\""
   },
   "dependencies": {
-    "axios": "^0.18",
+    "axios": "^0.21",
     "cropperjs": "^1.2.2",
     "html-loader": "^0.5.5",
     "iview": "^3.4.1",
