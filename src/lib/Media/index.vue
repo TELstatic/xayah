@@ -1596,7 +1596,7 @@
         if (this.simple) {
           this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
         } else {
-          this.headers['save-key'] = this.parentFolder.path + '/' + file.name;
+          this.headers.key = this.parentFolder.path + '/' + file.name;
         }
 
         this.$refs.upload.post(file);
