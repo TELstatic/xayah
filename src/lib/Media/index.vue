@@ -134,6 +134,7 @@
             <div class="xayah-object-list" @click="handleAddFolder" v-if="urls.create"
                  style="overflow:visible;">
               <Icon type="ios-add" size="60" class="xayah-create-folder"></Icon>
+              新建文件夹
             </div>
             <div class="xayah-object-list xayah-file-list" v-for="(item,index) in fileList">
                             <span v-if="isImage(item)">
@@ -1573,7 +1574,13 @@
             }
           });
         } else {
-          API.headFile(this.formatUrl(this.urls.upload) + '/' + form.path).then(res => {
+          if (this.urls.alias) {
+            var url = this.formatUrl(this.urls.alias) + '/' + form.path;
+          } else {
+            var url = this.formatUrl(this.urls.upload) + '/' + form.path;
+          }
+
+          API.headFile(url).then(res => {
             Notice.warning({
               title: '文件已存在',
               desc: '请修改【' + file.name + '】文件名'
@@ -1584,10 +1591,12 @@
         }
       },
       uploadFiles(file) {
+        console.log(this.headers)
+
         if (this.simple) {
           this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
         } else {
-          this.headers.key = this.parentFolder.path + '/' + file.name;
+          this.headers['save-key'] = this.parentFolder.path + '/' + file.name;
         }
 
         this.$refs.upload.post(file);
@@ -1658,7 +1667,7 @@
           } else {
             obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
           }
-          
+
           files.push(obj);
         });
 

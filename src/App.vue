@@ -143,11 +143,11 @@
                 },
                 urls: {
                     index: 'https://canarys.kodos.space/api/file/index',     //获取文件地址
-                    upload: '//canarys.oss-cn-shanghai.aliyuncs.com',       //上传地址
+                    upload: 'https://v0.api.upyun.com/rakan',       //上传地址
                     create: 'https://canarys.kodos.space/api/file/create',   //创建目录地址
-                    alias:'//canarys.oss-cn-shanghai.aliyuncs.com',         //显示地址
+                    alias:'http://rakan.test.upcdn.net/',         //显示地址
                     // check: 'https://canarys.kodos.space/api/file/check',     //检查文件唯一
-                    policy: 'https://canarys.kodos.space/api/file/policy',   //获取上传策略地址
+                    policy: 'http://127.0.0.1:88/demo.php',   //获取上传策略地址
                     delete: 'https://canarys.kodos.space/api/file/batch',    //删除文件或目录地址
                     // visible: 'https://canarys.kodos.space/api/file/visible', //设置文件可见性
                     paste: 'https://canarys.kodos.space/api/file/paste',     //复制剪切文件目录
@@ -162,7 +162,7 @@
                     random: false,  //是否启用随机文件名
                     key: 'id',
                     style: '',
-                    gateway: 'oss',
+                    gateway: 'upyun',
                     folder: true,
                     remote: true,
                     width:'100%'
