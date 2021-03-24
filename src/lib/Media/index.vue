@@ -993,11 +993,11 @@
       },
       getSuffix(item) {
         if (item.url) {
-          return item.url.substring(item.url.lastIndexOf('.') + 1);
+          return item.url.substring(item.url.lastIndexOf('.') + 1).toLowerCase();
         }
 
         if (item.path) {
-          return item.path.substring(item.path.lastIndexOf('.') + 1);
+          return item.path.substring(item.path.lastIndexOf('.') + 1).toLowerCase();
         }
       },
       isImage(item) {
@@ -1591,8 +1591,6 @@
         }
       },
       uploadFiles(file) {
-        console.log(this.headers)
-
         if (this.simple) {
           this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
         } else {
