@@ -151,9 +151,8 @@
                                         <span style="float: left;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
-                                        <span
-                                          style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
-                                            {{item.name}}
+                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                                {{item.name}}
                                         </span>
                                     </p>
                                     <DropdownMenu slot="list">
@@ -204,7 +203,7 @@
                                     <Checkbox v-model="item.checked"
                                               @click.prevent.native="handleSelect(index)"></Checkbox>
                                     </span>
-                                    <span style="float:left;">
+                                    <span style="float:left;max-width:70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                         {{item.name}}
                                     </span>
                                 </p>
@@ -231,8 +230,7 @@
                                         <span style="float: left;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
-                                        <span
-                                          style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                             {{item.name}}
                                         </span>
                                     </p>
