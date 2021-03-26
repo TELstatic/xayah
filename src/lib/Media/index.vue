@@ -79,9 +79,13 @@
               <Poptip
                 v-if="urls.delete"
                 confirm
-                title="此操作将删除所选文件和目录,确定继续?"
                 @on-ok="handleDelete"
                 @on-cancel="">
+                <div slot="title">
+                  <span style="color:red;">
+                    {{config.delete_tips ? config.delete_tips : '此操作将删除所选文件和目录,确定继续?'}}
+                  </span>
+                </div>
                 <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
               </Poptip>
               <Button :disabled="buttonStatus" icon="ios-redo-outline" @click="handleReset">
@@ -587,6 +591,7 @@
           current: false,     //是否显示当前版本
           check: false,       //是否检查图片宽高
           width: 1300,        //默认媒体库宽度 支持固定 或者 百分比
+          delete_tips:'此操作将删除所选文件和目录,确定继续?',
         },
       },
       id: {       //dom ID
