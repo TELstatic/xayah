@@ -155,7 +155,8 @@
                                         <span style="float: left;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
-                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                        <span
+                                          style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                                 {{item.name}}
                                         </span>
                                     </p>
@@ -207,7 +208,8 @@
                                     <Checkbox v-model="item.checked"
                                               @click.prevent.native="handleSelect(index)"></Checkbox>
                                     </span>
-                                    <span style="float:left;max-width:70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                    <span
+                                      style="float:left;max-width:70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                         {{item.name}}
                                     </span>
                                 </p>
@@ -234,7 +236,8 @@
                                         <span style="float: left;">
                                             <Checkbox v-model="item.checked"></Checkbox>
                                         </span>
-                                        <span style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
+                                        <span
+                                          style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
                                             {{item.name}}
                                         </span>
                                     </p>
@@ -360,6 +363,12 @@
             <Icon type="ios-arrow-back"/>
             上一张
           </Button>
+
+          <Button type="default" @click="handleView">
+            查看原图
+            <Icon type="ios-search-outline" />
+          </Button>
+
           <Button type="default" @click="handleChangeImage(false)">
             下一张
             <Icon type="ios-arrow-forward"/>
@@ -591,7 +600,7 @@
           current: false,     //是否显示当前版本
           check: false,       //是否检查图片宽高
           width: 1300,        //默认媒体库宽度 支持固定 或者 百分比
-          delete_tips:'此操作将删除所选文件和目录,确定继续?',
+          delete_tips: '此操作将删除所选文件和目录,确定继续?',
         },
       },
       id: {       //dom ID
@@ -1527,6 +1536,9 @@
       },
       handleCancel() {
         this.objectList = [];
+      },
+      handleView() {
+        window.open(this.imageReview.currentImage.url);
       },
       handleChangeImage(flag) {
         let index = this.images.findIndex((o) => {
