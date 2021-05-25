@@ -71,7 +71,7 @@
 
             <Button icon="ios-star-outline" type="info"
                     style="display: none"
-                    @click="handlePreview" v-if="urls.bookmark.index">
+                    @click="handlePreview" v-if="bookmark.index">
               书签
             </Button>
 
@@ -214,9 +214,9 @@
                                     <DropdownMenu slot="list" v-if="urls.rename || urls.delete">
                                         <DropdownItem v-if="urls.default"
                                                       @click.prevent.native="handleSetDefault(item)">设置默认目录</DropdownItem>
-                                        <DropdownItem v-if="urls.bookmark.create && !item.marked_at"
+                                        <DropdownItem v-if="bookmark.create && !item.marked_at"
                                                       @click.prevent.native="handleCreateBookmark(item)">收藏</DropdownItem>
-                                        <DropdownItem v-if="urls.bookmark.delete && item.marked_at"
+                                        <DropdownItem v-if="bookmark.delete && item.marked_at"
                                                       @click.prevent.native="handleDeleteBookmark(item)">取消收藏</DropdownItem>
                                         <DropdownItem v-if="urls.rename"
                                                       @click.prevent.native="handleRename(item)">重命名</DropdownItem>
@@ -618,12 +618,12 @@ export default {
         paste: '',     //复制剪切文件目录
         rename: '',    //重命名文件
         default: '',  //设置默认打开目录
-        bookmark: {
-          index: '',  // 获取书签列表
-          create: '', // 添加书签
-          delete: '', // 删除书签
-        },
       },
+    },
+    bookmark: {
+      index: '',  // 获取书签列表
+      create: '', // 添加书签
+      delete: '', // 删除书签
     },
     config: {
       type: Object,
@@ -739,7 +739,7 @@ export default {
                   size: 'small',
                 },
                 style: {
-                  display: this.urls.bookmark.delete ? '' : 'none',
+                  display: this.bookmark.delete ? '' : 'none',
                 },
                 on: {
                   click: () => {
@@ -1435,7 +1435,7 @@ export default {
       this.getBookmarks();
     },
     getBookmarks() {
-      API.getBookmarks(this.urls.bookmark.index, this.bookmark.query).then(res => {
+      API.getBookmarks(this.bookmark.index, this.bookmark.query).then(res => {
         this.bookmark.data = res.data;
         this.bookmark.query.total = res.total;
       });
@@ -1445,7 +1445,7 @@ export default {
         id: row.id,
       };
 
-      API.postBookmark(this.urls.bookmark.create, form).then(res => {
+      API.postBookmark(this.bookmark.create, form).then(res => {
         if (res.status === 200) {
           Notice.success({
             title: '添加成功',
@@ -1472,7 +1472,7 @@ export default {
         id: row.id,
       };
 
-      API.delBookmark(this.urls.bookmark.delete, form).then(res => {
+      API.delBookmark(this.bookmark.delete, form).then(res => {
         if (res.status === 200) {
           Notice.success({
             title: '删除成功',
