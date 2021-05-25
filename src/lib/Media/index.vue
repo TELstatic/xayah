@@ -25,7 +25,7 @@
         <Icon type="ios-camera-outline" :style="disabled ?'color:red':''" size="30"></Icon>
       </div>
       <span v-show="!!error" style="color: red;">
-                {{error}}
+                {{ error }}
             </span>
       <slot name="tips">
 
@@ -69,12 +69,21 @@
               云上传
             </Button>
 
+            <Button icon="ios-star-outline" type="info"
+                    style="display: none"
+                    @click="handlePreview" v-if="urls.bookmark.index">
+              书签
+            </Button>
+
             <div v-if="urls.index" class="xayah-display-inline">
               <Button icon="ios-home-outline" @click="handleHome" :disabled="!parentFolder.pid">
                 Root
               </Button>
               <Button icon="ios-refresh" @click="handleRefresh">
                 刷新
+              </Button>
+              <Button icon="md-checkbox-outline" @click="handleSelectAll">
+                全选
               </Button>
               <Poptip
                 v-if="urls.delete"
@@ -83,7 +92,7 @@
                 @on-cancel="">
                 <div slot="title">
                   <span style="color:red;">
-                    {{config.delete_tips ? config.delete_tips : '此操作将删除所选文件和目录,确定继续?'}}
+                    {{ config.delete_tips ? config.delete_tips : '此操作将删除所选文件和目录,确定继续?' }}
                   </span>
                 </div>
                 <Button :disabled="buttonStatus" icon="ios-trash-outline">删除</Button>
@@ -110,7 +119,7 @@
               <ButtonGroup v-if="objectList.length && urls.paste">
                 <Button type="dashed" :disabled="pasteStatus" icon="ios-paper-outline"
                         @click="handleStick">
-                  粘贴 ({{objectList.length}})
+                  粘贴 ({{ objectList.length }})
                 </Button>
                 <Button type="dashed" @click="handleCancel">
                   取消
@@ -119,6 +128,12 @@
 
               <Input style="width: auto;" v-model.trim="query.keyword" search @on-search="handleSearch"
                      placeholder="请输入关键词查找"></Input>
+
+              <Button type="info" :disabled="insertStatus" @click="insertImages">
+                <slot>
+                  插入图片
+                </slot>
+              </Button>
             </div>
 
             <i-switch v-model="isSmartSort" size="large" @on-change="handleSmartSortChange"
@@ -157,7 +172,7 @@
                                         </span>
                                         <span
                                           style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
-                                                {{item.name}}
+                                                {{ item.name }}
                                         </span>
                                     </p>
                                     <DropdownMenu slot="list">
@@ -197,6 +212,12 @@
                                           @dblclick.native="handleOpenFolder(item)"
                                           size="60" class="xayah-create-folder"></Icon>
                                     <DropdownMenu slot="list" v-if="urls.rename || urls.delete">
+                                        <DropdownItem v-if="urls.default"
+                                                      @click.prevent.native="handleSetDefault(item)">设置默认目录</DropdownItem>
+                                        <DropdownItem v-if="urls.bookmark.create && !item.marked_at"
+                                                      @click.prevent.native="handleCreateBookmark(item)">收藏</DropdownItem>
+                                        <DropdownItem v-if="urls.bookmark.delete && item.marked_at"
+                                                      @click.prevent.native="handleDeleteBookmark(item)">取消收藏</DropdownItem>
                                         <DropdownItem v-if="urls.rename"
                                                       @click.prevent.native="handleRename(item)">重命名</DropdownItem>
                                         <DropdownItem @click.prevent.native="handleDestroy(item)"
@@ -210,7 +231,7 @@
                                     </span>
                                     <span
                                       style="float:left;max-width:70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
-                                        {{item.name}}
+                                        {{ item.name }}
                                     </span>
                                 </p>
                             </span>
@@ -238,7 +259,7 @@
                                         </span>
                                         <span
                                           style="float: left;max-width: 70px;text-overflow:ellipsis;overflow-x:hidden;white-space: nowrap;">
-                                            {{item.name}}
+                                            {{ item.name }}
                                         </span>
                                     </p>
                                     <DropdownMenu slot="list">
@@ -272,35 +293,35 @@
               </p>
               <ul>
                 <li>
-                                <span style="text-align: center">
-                                    <img v-if="isImage(currentFile)" :src="formatImage(currentFile)"
-                                         style="width: 200px;height: 200px;"/>
-                                    <Icon type="ios-document-outline" v-else size="50"></Icon>
-                                </span>
+                    <span style="text-align: center">
+                        <img v-if="isImage(currentFile)" :src="formatImage(currentFile)"
+                             style="width: 200px;height: 200px;"/>
+                        <Icon type="ios-document-outline" v-else size="50"></Icon>
+                    </span>
                 </li>
                 <li>
                   <a href="javascript:;">名称</a>
                   <span style="white-space:nowrap;overflow: hidden;text-overflow:ellipsis;word-break: break-all">
-                                    {{currentFile.name}}
+                                    {{ currentFile.name }}
                                 </span>
                 </li>
                 <li>
                   <a href="javascript:;">日期</a>
                   <span>
-                                    {{currentFile.created_at}}
-                                </span>
+                      {{ currentFile.created_at }}
+                  </span>
                 </li>
                 <li>
                   <a href="javascript:;">大小</a>
                   <span>
-                                    {{currentFile.size}} KB
-                                </span>
+                      {{ currentFile.size }} KB
+                  </span>
                 </li>
                 <li>
                   <a href="javascript:;">尺寸</a>
                   <span>
-                                   {{currentFile.width}} × {{currentFile.height}}
-                                </span>
+                     {{ currentFile.width }} × {{ currentFile.height }}
+                  </span>
                 </li>
               </ul>
             </Card>
@@ -356,7 +377,7 @@
                style="max-width: 100%;max-height: 100%;"/>
         </div>
 
-        <pre>{{getFilename(imageReview.currentImage.url)}}</pre>
+        <pre>{{ getFilename(imageReview.currentImage.url) }}</pre>
 
         <ButtonGroup>
           <Button type="default" @click="handleChangeImage(true)">
@@ -366,7 +387,6 @@
 
           <Button type="default" @click="handleView">
             查看原图
-            <Icon type="ios-search-outline" />
           </Button>
 
           <Button type="default" @click="handleChangeImage(false)">
@@ -374,6 +394,25 @@
             <Icon type="ios-arrow-forward"/>
           </Button>
         </ButtonGroup>
+      </div>
+    </Modal>
+
+    <Modal
+      title="书签列表"
+      v-model="bookmark.visible"
+      width="80%"
+      :transfer="false"
+      :footerHide="true">
+      <div style="text-align: center;width: 100%">
+        <Table :data="bookmark.data" :columns="bookmark.columns"></Table>
+
+        <Page :total="bookmark.query.total"
+              show-total
+              show-sizer
+              show-elevator
+              @on-change="handlePageChange"
+              @on-page-size-change="handlePageSizeChange">
+        </Page>
       </div>
     </Modal>
 
@@ -523,649 +562,263 @@
   </div>
 </template>
 <script>
-  let time = null;
+let time = null;
 
-  import {sortBy} from 'lodash';
-  import help from '../../../HELP.md';
-  import {Notice, LoadingBar} from 'iview';
-  import VueMarkdown from 'vue-markdown'
-  import API from '../../utils/api';
-  import config from '../../config';
-  import Cropper from '../cropper'
+import {sortBy} from 'lodash';
+import help from '../../../HELP.md';
+import {Notice, LoadingBar} from 'iview';
+import VueMarkdown from 'vue-markdown'
+import API from '../../utils/api';
+import config from '../../config';
+import Cropper from '../cropper'
 
-  function oneOf(value, validList) {
-    for (let i = 0; i < validList.length; i++) {
-      if (value === validList[i]) {
-        return true;
-      }
+function oneOf(value, validList) {
+  for (let i = 0; i < validList.length; i++) {
+    if (value === validList[i]) {
+      return true;
     }
-    return false;
   }
+  return false;
+}
 
-  import Emitter from '../../mixins/emitter';
+import Emitter from '../../mixins/emitter';
 
-  export default {
-    name: 'xayah',
-    mixins: [Emitter],
-    components: {
-      Notice, VueMarkdown, Cropper
+export default {
+  name: 'xayah',
+  mixins: [Emitter],
+  components: {
+    Notice, VueMarkdown, Cropper
+  },
+  props: {
+    preview: {
+      type: Boolean,
+      default: true
     },
-    props: {
-      preview: {
-        type: Boolean,
-        default: true
-      },
-      moveStep: {
-        type: Number,
-        default: 4
-      },
-      cropButtonText: {
-        type: String,
-        default: '裁剪'
-      },
-      urls: {
-        type: Object,
-        default: {
-          index: '',    //获取文件地址
-          upload: '',   //上传地址
-          alias: '',     //显示地址 或者 自定义域名地址
-          create: '',   //创建目录地址
-          check: '',    //检查文件唯一
-          policy: '',   //获取上传策略地址
-          delete: '',   //删除文件或目录地址
-          return: '',   //本地回调地址
-          remote: '',   //远程下载地址
-          visible: '',//设置文件可见性
-          paste: '',     //复制剪切文件目录
-          rename: '',    //重命名文件
-        },
-      },
-      config: {
-        type: Object,
-        default: {
-          random: false,  //是否启用随机文件名
-          size: 0,        //上传大小限制
-          format: [       //上传类型限制
-            'jpg', 'png', 'jpeg'
-          ],
-          style: '',
-          key: 'id',
-          gateway: 'oss',
-          folder: false,      //是否开启目录上传
-          resource: false,    //是否隐藏源码链接
-          document: false,    //是否隐藏文档链接
-          debug: false,       //是否开启调试功能
-          strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
-          last: false,        //是否显示最新版本
-          current: false,     //是否显示当前版本
-          check: false,       //是否检查图片宽高
-          width: 1300,        //默认媒体库宽度 支持固定 或者 百分比
-          delete_tips: '此操作将删除所选文件和目录,确定继续?',
-        },
-      },
-      id: {       //dom ID
-        type: String,
-        default: '',
-      },
-      max: {      //插入文件限制
-        type: Number,
-        default: 1,
-      },
-      type: {
-        type: String,
-        validator(value) {
-          return oneOf(value, ['object', 'array', 'string']);
-        },
-        default: 'object',
-      },
-      width: {
-        default: 0,
-      },
-      height: {
-        default: 0,
-      },
-      simple: {   //简单上传模式
-        type: String,
-        default: '',
-      },
-      value: {
-        default: '',
-      },
-      disabled: {
-        type: Boolean,
-        default: false,
-      },
-      formatImages: {
-        type: Function,
-        default: function () {
-          return this.formatValue();
-        },
-      },
-      formatReturn: {
-        type: Function,
-        default: function (files) {
-          return this.formatCallback(files);
+    moveStep: {
+      type: Number,
+      default: 4
+    },
+    cropButtonText: {
+      type: String,
+      default: '裁剪'
+    },
+    urls: {
+      type: Object,
+      default: {
+        index: '',    //获取文件地址
+        upload: '',   //上传地址
+        alias: '',     //显示地址 或者 自定义域名地址
+        create: '',   //创建目录地址
+        check: '',    //检查文件唯一
+        policy: '',   //获取上传策略地址
+        delete: '',   //删除文件或目录地址
+        return: '',   //本地回调地址
+        remote: '',   //远程下载地址
+        visible: '',//设置文件可见性
+        paste: '',     //复制剪切文件目录
+        rename: '',    //重命名文件
+        default: '',  //设置默认打开目录
+        bookmark: {
+          index: '',  // 获取书签列表
+          create: '', // 添加书签
+          delete: '', // 删除书签
         },
       },
     },
-    data() {
-      return {
-        exampleImageSrc: '',
+    config: {
+      type: Object,
+      default: {
+        random: false,  //是否启用随机文件名
+        size: 0,        //上传大小限制
+        format: [       //上传类型限制
+          'jpg', 'png', 'jpeg'
+        ],
+        style: '',
+        key: 'id',
+        gateway: 'oss',
+        folder: false,      //是否开启目录上传
+        resource: false,    //是否隐藏源码链接
+        document: false,    //是否隐藏文档链接
+        debug: false,       //是否开启调试功能
+        strict: false,      //是否开启严格模式 默认上传不检查 headers.key 前缀 开启后检查
+        last: false,        //是否显示最新版本
+        current: false,     //是否显示当前版本
+        check: false,       //是否检查图片宽高
+        width: 1300,        //默认媒体库宽度 支持固定 或者 百分比
+        delete_tips: '此操作将删除所选文件和目录,确定继续?',
+      },
+    },
+    id: {       //dom ID
+      type: String,
+      default: '',
+    },
+    max: {      //插入文件限制
+      type: Number,
+      default: 1,
+    },
+    type: {
+      type: String,
+      validator(value) {
+        return oneOf(value, ['object', 'array', 'string']);
+      },
+      default: 'object',
+    },
+    width: {
+      default: 0,
+    },
+    height: {
+      default: 0,
+    },
+    simple: {   //简单上传模式
+      type: String,
+      default: '',
+    },
+    value: {
+      default: '',
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    formatImages: {
+      type: Function,
+      default: function () {
+        return this.formatValue();
+      },
+    },
+    formatReturn: {
+      type: Function,
+      default: function (files) {
+        return this.formatCallback(files);
+      },
+    },
+  },
+  data() {
+    return {
+      bookmark: {
         visible: false,
-        fileList: [],
-        currentValue: this.value,
         query: {
-          pid: null,
           page: 1,
-          per_page: 50,
+          per_page: 10,
           total: 0,
           keyword: null,
         },
-        help: {
-          visible: false,
-          source: help,
-        },
-        isActive: false,
-        isSmartSort: false,
-        pageSizeOpts: [
-          50, 100, 150,
-        ],
-        currentFolder: {
-          path: null,
-        },
-        parentFolder: {
-          pid: null,
-          path: 'xayah',
-        },
-        currentFile: {
-          path: null,
-          name: null,
-          size: 0,
-          width: 0,
-          height: 0,
-          created_at: null
-        },
-        error: null,
-        headers: {},
-        uploadList: [],
-        order: 0,
-        startIndex: 0,
-        objectList: [],
-        actionType: 'copy',
-        rename: {
-          form: {
-            id: null,
-            name: null,
-          },
-          rules: {
-            name: [
-              {
-                required: true,
-                message: '请输入文件名',
-              },
-            ],
-          },
-        },
-        imageReview: {
-          visible: false,
-          currentImage: {
-            url: null
-          }
-        },
-        cloud: {
-          visible: false,
-          form: {
-            pid: null,
-            items: [
-              {
-                name: null,
-                url: null,
-              },
-            ],
-          },
-          rules: {
-            item: {
-              required: true,
-              type: 'object',
-              fields: {
-                url: {
-                  type: 'url',
-                  required: true,
-                  pattern: new RegExp('/^https.?:\\/\\/(([a-zA-Z0-9_-])+(\\.)?)*(:\\d+)?(\\/((\\.)?(\\?)?=?&?[a-zA-Z0-9_-](\\?)?)*)*$/i'),
-                  message: '请输入正确的文件地址',
+        data: [],
+        columns: [
+          {
+            title: '目录名',
+            key: 'name',
+            render: (h, params) => {
+              let actionGo = h('Button', {
+                props: {
+                  type: 'info',
+                  size: 'small',
                 },
-                name: {
-                  type: 'string',
-                  pattern: /^[\u4E00-\u9FA5AA-Za-z0-9_-]+\.[A-Za-z0-9]+$/,
-                  required: true,
-                  message: '请输入正确的文件名称',
+                on: {
+                  click: () => {
+                    this.handleGo(params.row);
+                  },
                 },
-              }
+              }, params.row.name);
+
+              return h('div', [
+                actionGo,
+              ]);
             },
           },
-        },
-        suffixList: [
-          'png',
-          'jpg',
-          'jpeg',
-          'webp',
-          'gif',
-          'bmp',
-          'svg',
+          {
+            title: '时间',
+            key: 'marked_at',
+          },
+          {
+            title: '操作',
+            render: (h, params) => {
+              let actionDelete = h('Button', {
+                props: {
+                  type: 'error',
+                  size: 'small',
+                },
+                style: {
+                  display: this.urls.bookmark.delete ? '' : 'none',
+                },
+                on: {
+                  click: () => {
+                    this.handleDeleteBookmark(params.row);
+                  },
+                },
+              }, '删除');
+
+              return h('div', [
+                actionDelete,
+              ]);
+            },
+          },
         ],
-        cropper: {
-          visible: false,
-          image: null,
+      },
+      visible: false,
+      fileList: [],
+      currentValue: this.value,
+      query: {
+        pid: null,
+        page: 1,
+        per_page: 50,
+        total: 0,
+        keyword: null,
+      },
+      help: {
+        visible: false,
+        source: help,
+      },
+      isActive: false,
+      isSmartSort: false,
+      pageSizeOpts: [
+        50, 100, 150,
+      ],
+      currentFolder: {
+        path: null,
+      },
+      parentFolder: {
+        pid: null,
+        path: 'xayah',
+      },
+      currentFile: {
+        path: null,
+        name: null,
+        size: 0,
+        width: 0,
+        height: 0,
+        created_at: null
+      },
+      error: null,
+      headers: {},
+      uploadList: [],
+      order: 0,
+      startIndex: 0,
+      objectList: [],
+      actionType: 'copy',
+      rename: {
+        form: {
+          id: null,
+          name: null,
         },
-        createFolder: {
-          visible: false,
-          loading: false,
-          form: {
-            name: null,
-            pid: null,
-          },
-          rules: {
-            name: [
-              {
-                required: true,
-                trigger: 'blur',
-                type: 'string',
-                message: '目录名必须',
-              },
-              {
-                type: 'string',
-                pattern: /^[\u4E00-\u9FA5A-Za-z0-9_]+$/,
-                message: '目录名非法',
-              },
-            ]
-          },
-        },
-      }
-    },
-    computed: {
-      buttonStatus() {
-        return !this.fileList.filter(this.filterChecked).length;
-      },
-      insertStatus() {
-        let res = this.fileList.filter(this.filterFileChecked).length;
-
-        return !res && !this.uploadList.length;
-      },
-      uploadStatus() {
-        return !this.cloud.form.items.filter(this.filterUrl).length;
-      },
-      images: {
-        get: function () {
-          return this.formatValue();
-        },
-        set: function () {
-
+        rules: {
+          name: [
+            {
+              required: true,
+              message: '请输入文件名',
+            },
+          ],
         },
       },
-      pasteStatus() {
-        return !this.objectList.length;
-      },
-    },
-    watch: {
-      value(val) {
-        this.setCurrentValue(val);
+      imageReview: {
+        visible: false,
+        currentImage: {
+          url: null
+        }
       },
       cloud: {
-        deep: true,
-        handler(newValue, oldValue) {
-          newValue.form.items.forEach(function (item) {
-            if (!item.name && item.url) {
-              item.name = item.url.replace(/(.*\/)*([^.]+).*/ig, "$2") + '.' + item.url.replace(/.+\./, "");
-            }
-          });
-        }
-      }
-    },
-    beforeCreate() {
-      localStorage.setItem('debug_mode', this.$options.propsData.config.debug);
-    },
-    mounted() {
-      this.checkPolicy();
-
-      this.initUploadFolder();
-
-      //检查浏览器是否支持目录上传
-      if (this.config.folder) {
-        this.config.folder = this.isInputDirSupported();
-      }
-    },
-    methods: {
-      isInputDirSupported() {
-        let tmpInput = document.createElement('input');
-
-        if ('webkitdirectory' in tmpInput ||
-          'mozdirectory' in tmpInput ||
-          'odirectory' in tmpInput ||
-          'msdirectory' in tmpInput ||
-          'directory' in tmpInput) {
-          this.initUploadFolder();
-
-          return true;
-        }
-
-        return false;
-      },
-      initUploadFolder() {
-        let that = this;
-
-        document.getElementById('uploadFolder').addEventListener('change', function () {
-          if (!this.files.length) return;
-
-          let files = this.files;
-
-          for (let i = 0; i < files.length; i++) {
-
-            if (that.checkFileSize(files[i].size) && that.checkFileType(files[i].name)) {
-              that.setHeaders();
-
-              setTimeout(function () {
-                that.uploadFiles(new File([files[i]], that.getRandomFilename(files[i]), {type: files[i].type}));
-              }, 100);
-            }
-          }
-        }, false);
-      },
-      checkFileType(filename) {
-        return oneOf(filename.split('.')[1], this.config.format);
-      },
-      checkFileSize(size) {
-        return size > this.config.size;
-      },
-      swapArr(arr, start, end) {
-        arr[start] = arr.splice(end, 1, arr[start])[0];
-
-        return arr;
-      },
-      handleHelp() {
-        this.help.visible = true;
-      },
-      handleDropActive() {
-        this.isActive = !this.isActive;
-      },
-      handleDragStart(event, index) {
-        this.startIndex = index;
-      },
-      handleDrop(event, index) {
-        this.images = this.swapArr(this.images, this.startIndex, index);
-        event.preventDefault();
-      },
-      handleDragOver(event) {
-        event.preventDefault();
-      },
-      handlePaste(e) {
-        let files = Array.prototype.slice.call(e.clipboardData.files);
-
-        if (!files.length) return;
-
-        let that = this;
-        this.setHeaders();
-
-        files.forEach(file => {
-          setTimeout(function () {
-            that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
-          }, 100);
-        });
-      },
-      formatText(val) {
-        if (!val) {
-          return 'Enter value';
-        }
-        return val;
-      },
-      formatUrl(url) {
-        if (url.charAt(url.length - 1) === '/') {
-          return url.substr(0, url.length - 1);
-        }
-
-        return url;
-      },
-      formatCallback(files) {
-        switch (this.type) {
-          default:
-          case 'object':
-            return files;
-          case 'array':
-            let temp = [];
-            for (let i = 0; i < files.length; i++) {
-              temp[i] = files[i].url;
-            }
-            return temp;
-          case 'string':
-            if (files.length > 0) {
-              return files[0].url
-            }
-
-            return '';
-        }
-      },
-      formatValue() {
-        let arr;
-
-        switch (Object.prototype.toString.call(this.currentValue)) {
-          case '[object String]':
-            if (this.currentValue) {
-              arr = [{
-                url: this.currentValue
-              }];
-            } else {
-              arr = [];
-            }
-            break;
-          case '[object Array]':
-            let type = Object.prototype.toString.call(this.currentValue[0]);
-            switch (type) {
-              case '[object String]':
-                arr = [];
-                for (let i = 0; i < this.currentValue.length; i++) {
-                  arr[i] = {};
-                  arr[i].url = this.currentValue[i];
-                }
-
-                break;
-              case '[object Object]':
-                arr = this.currentValue;
-                break;
-              case '[object Undefined]':
-                arr = [];
-                break;
-              default:
-                console.error('暂不支持数组和对象以外的类型', type);
-                arr = [];
-                break;
-            }
-            break;
-          case '[object Null]':
-            arr = [];
-            break;
-          default:
-            console.error('未知格式', Object.prototype.toString.call(this.currentValue));
-            break;
-        }
-
-        return arr;
-      },
-      formatIcon(item) {
-        return config.formatIcon(this.getSuffix(item));
-      },
-      formatImage(item) {
-        if (item.url) {
-          return item.url + this.config.style;
-        }
-
-        if (item.host) {
-          return this.formatUrl(item.host) + "/" + item.path + this.config.style;
-        }
-
-        return null;
-      },
-      getSuffix(item) {
-        if (item.url) {
-          return item.url.substring(item.url.lastIndexOf('.') + 1).toLowerCase();
-        }
-
-        if (item.path) {
-          return item.path.substring(item.path.lastIndexOf('.') + 1).toLowerCase();
-        }
-      },
-      isImage(item) {
-        return oneOf(this.getSuffix(item), this.suffixList);
-      },
-      handleChoose() {
-        if (this.disabled) {
-          return;
-        }
-
-        if (this.simple) {
-          this.$refs.upload.fileList = [];
-
-          document.getElementById('upload').click();
-        } else {
-          this.visible = true;
-
-          this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
-
-          this.uploadList = [];
-          this.getFiles();
-        }
-      },
-      handleSmartSortChange(val) {
-        localStorage.setItem('isSmartSort', val ? 1 : 0);
-      },
-      getFiles() {
-        this.clean();
-
-        if (!this.urls.index) {
-          return false;
-        }
-
-        if (this.simple) {
-          return false;
-        }
-
-        API.getFiles(this.urls.index, this.query).then(res => {
-          this.fileList = res.children.data;
-          this.query.total = res.children.total;
-          this.parentFolder = res.parent;
-
-          this.currentFolder = res.parent;
-
-          this.createFolder.form.pid = res.parent[this.config.key];
-
-          if (this.config.strict) {
-            this.checkPolicy();
-          }
-        });
-      },
-      handleOpenFolder(folder) {
-        clearTimeout(time);
-
-        this.query.page = 1;
-        this.query.pid = folder[this.config.key];
-
-        this.query.keyword = null;
-
-        this.currentFolder = folder;
-        this.getFiles();
-      },
-      handleSelect(index) {
-
-        let that = this;
-
-        clearTimeout(time);
-
-        time = setTimeout(function () {
-          that.fileList[index]['checked'] = !that.fileList[index]['checked'];
-          that.fileList[index]['order'] = ++that.order;
-          that.currentFile = that.fileList[index];
-        }, 300);
-      },
-      handleAdd() {
-        this.cloud.form.items.push({
-          name: null,
-          url: null,
-        });
-      },
-      handleRemove(index) {
-        this.cloud.form.items.splice(index, 1);
-      },
-      handleClean() {
-        switch (Object.prototype.toString.call(this.currentValue)) {
-          case '[object Array]':
-            let type = Object.prototype.toString.call(this.currentValue[0]);
-            switch (type) {
-              case '[object String]':
-              case '[object Object]':
-                this.currentValue.splice(0, this.currentValue.length);
-                break;
-              default:
-                this.currentValue = '';
-                break;
-            }
-            break;
-          default:
-            this.setCurrentValue(null);
-            this.$emit('input', null);
-            break;
-        }
-
-        event.preventDefault();
-      },
-      handleSlice(index) {
-        switch (Object.prototype.toString.call(this.currentValue)) {
-          case '[object Array]':
-            let type = Object.prototype.toString.call(this.currentValue[0]);
-            switch (type) {
-              case '[object String]':
-              case '[object Object]':
-                this.currentValue.splice(index, 1);
-                break;
-              default:
-                this.currentValue = '';
-                break;
-            }
-            break;
-          default:
-            this.setCurrentValue(null);
-            this.$emit('input', null);
-            break;
-        }
-
-        event.preventDefault();
-      },
-      setCurrentValue(value) {
-        if (value === this.currentValue) {
-          return;
-        }
-
-        this.currentValue = value;
-      },
-      handleAddFolder() {
-        this.$refs.createFolderForm.resetFields();
-
-        this.createFolder.visible = true;
-      },
-      clean() {
-        this.createFolder.visible = false;
-        this.rename.visible = false;
-        this.cloud.visible = false;
-
-        this.createFolder.form.name = null;
-
-        this.currentFile = {
-          path: null,
-          name: null,
-          size: 0,
-          width: 0,
-          height: 0,
-          created_at: null,
-        };
-
-        this.cloud.form = {
+        visible: false,
+        form: {
           pid: null,
           items: [
             {
@@ -1173,946 +826,1508 @@
               url: null,
             },
           ],
-        };
-      },
-      handleEditImage(item) {
-        let url;
-
-        if (item.url) {
-          url = item.url;
-        } else {
-          url = this.formatUrl(item.host) + '/' + item.path;
-        }
-
-        this.cropper.image = url
-
-        this.cropper.visible = true;
-      },
-      handleSetVisible(item, visible) {
-        let form = {
-          id: item[this.config.key],
-          visible: visible,
-        };
-
-        API.patchFileVisible(this.urls.visible, form).then(res => {
-          if (res.status === 200) {
-            this.$Notice.success({
-              title: '设置成功',
-            });
-
-            this.getFiles();
-          } else {
-            this.$Notice.error({
-              title: '设置失败',
-              desc: res.msg
-            });
-          }
-        }).catch(error => {
-          console.error(error);
-        });
-      },
-      handleRename(item) {
-        this.rename.visible = true;
-        this.rename.form.id = item.id;
-        this.rename.form.name = item.name;
-      },
-      handleCopyLink(item) {
-        let url;
-
-        if (item.url) {
-          url = item.url;
-        } else {
-          url = this.formatUrl(item.host) + "/" + item.path;
-        }
-
-        this.copy(url, '链接复制成功');
-      },
-      copy(val, msg) {
-        const input = document.createElement('input');
-        input.setAttribute('readonly', 'readonly');
-        input.setAttribute('value', val);
-        document.body.appendChild(input);
-        input.setSelectionRange(0, 9999);
-        input.select();
-
-        if (document.execCommand('copy')) {
-          this.$Notice.success({
-            title: msg,
-          });
-        }
-
-        document.body.removeChild(input);
-      },
-      getFilename(filename) {
-        if (filename) {
-          return filename.substring(0, filename.indexOf('?') === -1 ? filename.length : filename.indexOf('?')).substr(filename.lastIndexOf('/') + 1);
-        }
-
-        return null;
-      },
-      handleCopyMDLink(item) {
-        let url;
-
-        if (item.url) {
-          url = item.url;
-        } else {
-          url = this.formatUrl(item.host) + "/" + item.path;
-        }
-
-        let mdUrl = '![' + url.substring(0, url.indexOf('?') === -1 ? url.length : url.indexOf('?')).substr(url.lastIndexOf('/') + 1) + ']' + '(' + url + ')';
-
-        this.copy(mdUrl, 'MarkDown 链接复制成功');
-      },
-      handleDownload(item) {
-        let url;
-
-        if (item.url) {
-          url = item.url;
-        } else {
-          url = this.formatUrl(item.host) + "/" + item.path;
-        }
-
-        window.open(url);
-      },
-      handleDestroy(item) {
-        let form = {
-          ids: [item[this.config.key]],
-        };
-
-        API.delFiles(this.urls.delete, form).then(res => {
-          if (res.status === 200) {
-            this.$Notice.success({
-              title: '删除成功',
-              desc: ' '
-            });
-            this.getFiles();
-          } else {
-            this.$Notice.error({
-              title: '删除失败',
-              desc: res.msg,
-            });
-          }
-        }).catch(error => {
-          console.error(error);
-        });
-      },
-      handleReview(val) {
-        this.imageReview.visible = true;
-        this.imageReview.currentImage = val;
-
-        event.preventDefault()
-      },
-      handleUploadFolder() {
-        document.getElementById('uploadFolder').click();
-      },
-      handleFormatError() {
-        let error = '请上传以下格式文件 ' + this.config.format.join('|');
-        this.error = error;
-
-        Notice.warning({
-          title: '文件格式错误',
-          desc: error,
-        });
-      },
-      handleExceededSize() {
-        let error = '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件';
-        this.error = error;
-
-        Notice.warning({
-          title: '文件大小错误',
-          desc: error,
-        });
-      },
-      handleClose() {
-        this.cropper.visible = false;
-      },
-      handleCroped(blob) {
-        let that = this;
-        this.setHeaders();
-
-        let file = new File([blob], Math.random().toString(36).substr(2) + new Date().getTime() + '.png', {type: 'image/png'});
-
-        setTimeout(function () {
-          that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
-        }, 1000);
-      },
-      checkFileWidthAndHeight(file) {
-        let that = this;
-
-        let fileReader = new FileReader();
-
-        fileReader.onload = e => {
-          let src = e.target.result;
-
-          const image = new Image();
-          image.onload = function () {
-            if (typeof that.width === 'number') {
-              if (that.width && this.width !== that.width) {
-                let error = '请上传宽为 ' + that.width + ' 的图片';
-                that.error = error;
-
-                that.$Notice.warning({
-                  title: error,
-                });
-
-                return false;
-              }
-            } else {
-              if (!!(that.width[0] && that.width[1])) {
-                if (!((that.width[0] <= this.width) && (that.width[1] >= this.width))) {
-                  let error = '请上传宽度范围为 ' + that.width[0] + '-' + that.width[1] + ' 的图片';
-                  that.error = error;
-
-                  that.$Notice.warning({
-                    title: error,
-                  });
-
-                  return false;
-                }
-              } else {
-                let error = '请修改配置 width,并输入正确的数字或数组';
-
-                that.error = error;
-
-                that.$Notice.warning({
-                  title: error,
-                });
-
-                return false;
-              }
+        },
+        rules: {
+          item: {
+            required: true,
+            type: 'object',
+            fields: {
+              url: {
+                type: 'url',
+                required: true,
+                pattern: new RegExp('/^https.?:\\/\\/(([a-zA-Z0-9_-])+(\\.)?)*(:\\d+)?(\\/((\\.)?(\\?)?=?&?[a-zA-Z0-9_-](\\?)?)*)*$/i'),
+                message: '请输入正确的文件地址',
+              },
+              name: {
+                type: 'string',
+                pattern: /^[\u4E00-\u9FA5AA-Za-z0-9_-]+\.[A-Za-z0-9]+$/,
+                required: true,
+                message: '请输入正确的文件名称',
+              },
             }
-
-            if (typeof that.height === 'number') {
-              if (that.height && this.height !== that.height) {
-                let error = '请上传高为 ' + that.height + ' 的图片';
-                that.error = error;
-
-                that.$Notice.warning({
-                  title: error,
-                });
-
-                return false;
-              }
-            } else {
-              if (!!(that.height[0] && that.height[1])) {
-                if (!((that.height[0] <= this.height) && (that.height[1] >= this.height))) {
-                  let error = '请上传高度范围为 ' + that.height[0] + '-' + that.height[1] + ' 的图片';
-                  that.error = error;
-
-                  that.$Notice.warning({
-                    title: error,
-                  });
-
-                  return false;
-                }
-              } else {
-                let error = '请修改配置 height,并输入正确的数字或数组';
-                that.error = error;
-
-                that.$Notice.warning({
-                  title: error,
-                });
-
-                return false;
-              }
-            }
-
-            return true;
-          };
-
-          image.src = src;
-        };
-
-        fileReader.readAsDataURL(file);
+          },
+        },
       },
-      setHeaders() {
-        let key;
-
-        if (this.simple) {
-          key = this.config.gateway + '_' + this.simple + '_policy';
-
-          let policy = JSON.parse(localStorage.getItem(key));
-
-          this.headers = policy.value;
-        } else {
-          if (this.config.strict) {
-            key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
-
-            let policy = JSON.parse(localStorage.getItem(key));
-
-            this.headers = policy.value;
-          } else {
-            key = this.config.gateway + '_policy';
-
-            let policy = JSON.parse(localStorage.getItem(key));
-
-            this.headers = policy.value;
-          }
-        }
+      suffixList: [
+        'png',
+        'jpg',
+        'jpeg',
+        'webp',
+        'gif',
+        'bmp',
+        'svg',
+      ],
+      cropper: {
+        visible: false,
+        image: null,
       },
-      handleBeforeUpload(file) {
-        let that = this;
-
-        if (file.type.indexOf('image') !== 1 && this.config.check) {
-          this.checkFileWidthAndHeight(file);
-        }
-
-        let key;
-
-        if (this.simple) {
-          key = this.config.gateway + '_' + this.simple + '_policy';
-
-          let policy = JSON.parse(localStorage.getItem(key));
-
-          this.headers = policy.value;
-        } else {
-          if (this.config.strict) {
-            key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
-
-            let policy = JSON.parse(localStorage.getItem(key));
-
-            this.headers = policy.value;
-          } else {
-            key = this.config.gateway + '_policy';
-
-            let policy = JSON.parse(localStorage.getItem(key));
-
-            this.headers = policy.value;
-          }
-        }
-
-        if (this.simple) {
-          setTimeout(function () {
-            that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
-          }, 1000);
-
-          return false;
-        }
-
-        if (this.config.random) {
-          this.uploadFiles(new File([file], this.getRandomFilename(file), {type: file.type}));
-
-          return false;
-        } else {
-          this.checkFile(file);
-
-          return false;
-        }
+      createFolder: {
+        visible: false,
+        loading: false,
+        form: {
+          name: null,
+          pid: null,
+        },
+        rules: {
+          name: [
+            {
+              required: true,
+              trigger: 'blur',
+              type: 'string',
+              message: '目录名必须',
+            },
+            {
+              type: 'string',
+              pattern: /^[\u4E00-\u9FA5A-Za-z0-9_]+$/,
+              message: '目录名非法',
+            },
+          ]
+        },
       },
-      handleUpload() {
-        this.cloud.visible = true;
-        this.cloud.form.pid = this.createFolder.form.pid;
+    }
+  },
+  computed: {
+    buttonStatus() {
+      return !this.fileList.filter(this.filterChecked).length;
+    },
+    insertStatus() {
+      let res = this.fileList.filter(this.filterFileChecked).length;
+
+      return !res && !this.uploadList.length;
+    },
+    uploadStatus() {
+      return !this.cloud.form.items.filter(this.filterUrl).length;
+    },
+    images: {
+      get: function () {
+        return this.formatValue();
       },
-      handleSubmit() {
-        this.$refs.cloudForm.validate((valid) => {
-          if (valid) {
-            API.getFilesByServer(this.urls.remote, this.cloud.form).then(res => {
-              if (res.status === 200) {
-                Notice.success({
-                  title: '文件上传成功',
-                  desc: '',
-                });
+      set: function () {
 
-                this.getFiles();
-              } else {
-                Notice.error({
-                  title: '文件上传失败',
-                  desc: res.msg,
-                });
-              }
-            }).catch(error => {
-              console.error(error);
-            });
-          } else {
-            Notice.warning({
-              title: '表单参数有误',
-              desc: '请检查'
-            });
-          }
-        });
       },
-      getRandomFilename(file) {
-        return Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
-      },
-      handleCancel() {
-        this.objectList = [];
-      },
-      handleView() {
-        window.open(this.imageReview.currentImage.url);
-      },
-      handleChangeImage(flag) {
-        let index = this.images.findIndex((o) => {
-          return o.url === this.imageReview.currentImage.url
-        });
-
-        if (flag) {
-          index = !index ? this.images.length : index;
-
-          this.imageReview.currentImage = this.images[index - 1];
-        } else {
-          index = (index + 1) === this.images.length ? -1 : index;
-
-          this.imageReview.currentImage = this.images[index + 1];
-        }
-      },
-      checkFile(file) {
-        let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
-
-        if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
-          Notice.warning({
-            title: '文件名包含特殊字符',
-            desc: '请修改' + file.name + '文件名',
-          });
-
-          Notice.info({
-            title: '文件名仅支持以下字符',
-            desc: '中英文,数字,下划线减号空格【_，-， 】',
-            duration: 0,
-          });
-
-          return false;
-        }
-
-        let form = {
-          path: this.parentFolder.path + '/' + file.name,
-        };
-
-        if (this.urls.check) {
-          API.checkFile(this.urls.check, form).then(res => {
-            if (res.status == 200) {
-              this.uploadFiles(file);
-            } else {
-              Notice.warning({
-                title: res.msg,
-                desc: '请修改【' + file.name + '】文件名',
-              });
-            }
-          });
-        } else {
-          if (this.urls.alias) {
-            var url = this.formatUrl(this.urls.alias) + '/' + form.path;
-          } else {
-            var url = this.formatUrl(this.urls.upload) + '/' + form.path;
-          }
-
-          API.headFile(url).then(res => {
-            Notice.warning({
-              title: '文件已存在',
-              desc: '请修改【' + file.name + '】文件名'
-            });
-          }).catch(error => {
-            this.uploadFiles(file);
-          });
-        }
-      },
-      uploadFiles(file) {
-        if (this.simple) {
-          this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
-        } else {
-          this.headers.key = this.parentFolder.path + '/' + file.name;
-        }
-
-        this.$refs.upload.post(file);
-      },
-      checkPolicy() {
-        let key;
-
-        if (this.config.strict) {
-          key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
-        } else {
-          key = this.config.gateway + '_policy';
-        }
-
-        if (localStorage.getItem(key)) {
-          let policy = JSON.parse(localStorage.getItem(key));
-
-          if (new Date() > new Date(policy.expire_at)) {
-            this.getPolicy();
-          }
-        } else {
-          this.getPolicy();
-        }
-      },
-      getPolicy() {
-        if (!this.urls.policy) {
-          this.$Notice.info({
-            title: '请填写获取策略地址',
-          });
-
-          return false;
-        }
-
-        let form = {
-          path: this.currentFolder.path,
-        };
-
-        if (this.simple) {
-          form.path = this.simple;
-        }
-
-        API.getPolicy(this.urls.policy, form).then(res => {
-          let policy = {};
-          policy.value = res.data;
-          policy.expire_at = new Date(new Date().getTime() + res.expire * 1000);
-
-          if (this.simple) {
-            localStorage.setItem(this.config.gateway + '_' + this.simple + '_policy', JSON.stringify(policy));
-          } else {
-            if (this.config.strict) {
-              localStorage.setItem(this.config.gateway + '_' + this.currentFolder.path + '_policy', JSON.stringify(policy));
-            } else {
-              localStorage.setItem(this.config.gateway + '_policy', JSON.stringify(policy));
-            }
-          }
-        }).catch(error => {
-          console.error(error);
-        });
-      },
-      simpleInsertImages(fileList) {
-        let that = this;
-        let files = [];
-
-        fileList.forEach(function (current) {
-          let obj = {};
-
-          if (that.urls.alias) {
-            obj.url = that.formatUrl(that.urls.alias) + '/' + that.formatUrl(that.simple) + '/' + current.name;
-          } else {
-            obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
-          }
-
-          files.push(obj);
-        });
-
-        let res = this.formatReturn(files);
-
-        this.currentValue = res;
-        this.$emit('input', res);
-        this.$emit('callback', res);
-        this.dispatch('FormItem', 'on-form-change', res);
-      },
-      handleSuccess(res, file, fileList) {
-        if (this.simple) {
-          this.simpleInsertImages(fileList);
-
-          return false;
-        }
-
-        this.cropper.visible = false;
-
-        var url;
-
-        if (this.urls.alias) {
-          url = this.formatUrl(this.urls.alias) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
-        } else {
-          url = this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
-        }
-
-        this.uploadList.push({
-          type: 'file',
-          checked: true,
-          url: url,
-        });
-
-        if (!!this.urls.return) {
-          let form = {
-            filename: this.parentFolder.path + '/' + file.name,
-            size: file.size,
-          };
-
-          API.postFile(this.urls.return, form).then(res => {
-            if (res.status === 200) {
-              this.$Notice.success({
-                title: '回调成功',
-                desc: 'client'
-              });
-            } else {
-              this.$Notice.error({
-                title: '回调失败',
-                desc: 'client'
-              });
-            }
-
-            this.getFiles();
-          }).catch(error => {
-            console.error(error);
-          });
-        } else {
-          if (res.status == 200) {
-            Notice.success({
-              title: '上传成功',
-              desc: 'server'
-            });
-
-            this.getFiles();
-          } else {
-            Notice.error({
-              title: '回调失败',
-              desc: '请联系管理员'
-            });
-          }
-        }
-      },
-      handleError(err) {
-        console.error(err);
-
-        Notice.error({
-          title: '上传失败',
-          desc: '请联系管理员'
-        });
-      },
-      orderBy(field) {
-        return function (a, b) {
-          return a[field] - b[field];
-        }
-      },
-      insertImages() {
-        let that = this;
-        //过滤目录
-        let items = this.fileList.filter(this.filterFileChecked).sort(this.orderBy('order'));
-
-        let files = [];
-
-        this.uploadList.forEach(function (current) {
-          let obj = {};
-
-          if (current.url) {
-            obj.url = current.url;
-          } else {
-            obj.url = that.formatUrl(current.host) + '/' + current.path;
-          }
-
-          files.push(obj);
-        });
-
-        items.forEach(function (current) {
-          let obj = {};
-
-          if (current.url) {
-            obj.url = current.url;
-          } else {
-            obj.url = that.formatUrl(current.host) + '/' + current.path;
-          }
-
-          files.push(obj);
-        });
-
-        if (this.isSmartSort) {
-          files = sortBy(files, [function (o) {
-            return o.url;
-          }]);
-        }
-
-        if (files.length > this.max) {
-          Notice.info({
-            title: '提示',
-            desc: '文件最多选择' + this.max + '张,多选部分将被舍弃',
-          });
-
-          files = files.slice(0, this.max);
-        }
-
-        let res = this.formatReturn(files);
-
-        this.currentValue = res;
-        this.$emit('input', res);
-        this.$emit('callback', res);
-        this.dispatch('FormItem', 'on-form-change', res);
-
-        this.order = 0;
-        this.visible = false;
-        this.handleReset();
-      },
-      pageChange(val) {
-        this.query.page = val;
-        this.getFiles();
-      },
-      pageSizeChange(val) {
-        this.query.page = 1;
-        this.query.per_page = val;
-        this.getFiles();
-      },
-      handleBack() {
-        this.query.pid = this.parentFolder.pid;
-        this.query.page = 1;
-        this.getFiles();
-      },
-      handleCopy() {
-        this.actionType = 'copy';
-
-        this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
-      },
-      flatMapKey(item) {
-        return item[this.config.key];
-      },
-      filterChecked(item) {
-        return item.checked;
-      },
-      filterFileChecked(item) {
-        return item.checked && item.type === 'file';
-      },
-      filterUrl(item) {
-        return item.url;
-      },
-      handleCut() {
-        this.actionType = 'cut';
-
-        this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
-      },
-      handleStick() {
-        let form = {
-          action: this.actionType,
-          ids: this.objectList,
-          folder_id: this.currentFolder[this.config.key],
-        };
-
-        API.postFiles(this.urls.paste, form).then(res => {
-          if (res.status === 200) {
-            this.$Notice.success({
-              title: '操作成功',
-              desc: ' ',
-            });
-
-            this.objectList = [];
-
-            this.getFiles();
-          } else {
-            this.$Notice.error({
-              title: '操作失败',
-              desc: res.msg,
-            });
-          }
-        });
-      },
-      handleSearch() {
-        this.query.pid = null;
-        this.query.page = 1;
-
-        this.getFiles();
-      },
-      handleHome() {
-        this.query.pid = null;
-        this.query.page = 1;
-        this.getFiles();
-      },
-      handleRefresh() {
-        this.getFiles();
-        Notice.success({
-          title: '刷新成功',
-          desc: ' '
-        });
-      },
-      handleDelete() {
-        let res = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
-
-        let form = {
-          ids: res,
-        };
-
-        API.delFiles(this.urls.delete, form).then(res => {
-          if (res.status === 200) {
-            Notice.success({
-              title: '删除成功',
-              desc: ' '
-            });
-            this.getFiles();
-          } else {
-            Notice.error({
-              title: '删除失败',
-              desc: res.msg,
-            });
-          }
-        }).catch(error => {
-          console.error(error);
-        });
-      },
-      handleReset() {
-        this.fileList.map(function (o) {
-          o.checked = false;
-          o.order = 0;
-        });
-      },
-      handleRenameSubmit() {
-        this.rename.loading = true;
-
-        this.$refs.renameForm.validate((valid) => {
-          if (valid) {
-            API.putFileName(this.urls.rename, this.rename.form).then(res => {
-              if (res.status === 200) {
-                this.$Notice.success({
-                  title: '操作成功',
-                  desc: ' ',
-                });
-
-                this.getFiles();
-              } else {
-                this.$Notice.error({
-                  title: '操作失败',
-                  desc: res.msg,
-                });
-              }
-
-              this.rename.loading = false;
-            }).catch(error => {
-              this.rename.loading = false;
-              console.error(error);
-            });
-          } else {
-            this.$Notice.warning({
-              title: '表单参数有误',
-              desc: '请检查',
-            });
-          }
-        });
-      },
-      handleSubmitFolder() {
-        this.createFolder.loading = true;
-
-        this.$refs.createFolderForm.validate((valid) => {
-          if (valid) {
-            API.postFolder(this.urls.create, this.createFolder.form).then(res => {
-              if (res.status === 200) {
-                Notice.success({
-                  title: '目录创建成功',
-                  desc: ' '
-                });
-
-                this.getFiles();
-              } else {
-                Notice.error({
-                  title: '目录创建失败',
-                  desc: res.msg,
-                });
-              }
-
-              this.createFolder.loading = false;
-            }).catch(error => {
-              this.createFolder.loading = false;
-              console.error(error);
-            });
-          } else {
-            this.createFolder.loading = false;
-
-            Notice.warning({
-              title: '表单输入有误',
-              desc: '请检查'
-            });
+    },
+    pasteStatus() {
+      return !this.objectList.length;
+    },
+  },
+  watch: {
+    value(val) {
+      this.setCurrentValue(val);
+    },
+    cloud: {
+      deep: true,
+      handler(newValue, oldValue) {
+        newValue.form.items.forEach(function (item) {
+          if (!item.name && item.url) {
+            item.name = item.url.replace(/(.*\/)*([^.]+).*/ig, '$2') + '.' + item.url.replace(/.+\./, '');
           }
         });
       }
     }
+  },
+  beforeCreate() {
+    localStorage.setItem('debug_mode', this.$options.propsData.config.debug);
+  },
+  mounted() {
+    this.checkPolicy();
+
+    this.initUploadFolder();
+
+    //检查浏览器是否支持目录上传
+    if (this.config.folder) {
+      this.config.folder = this.isInputDirSupported();
+    }
+  },
+  methods: {
+    isInputDirSupported() {
+      let tmpInput = document.createElement('input');
+
+      if ('webkitdirectory' in tmpInput ||
+        'mozdirectory' in tmpInput ||
+        'odirectory' in tmpInput ||
+        'msdirectory' in tmpInput ||
+        'directory' in tmpInput) {
+        this.initUploadFolder();
+
+        return true;
+      }
+
+      return false;
+    },
+    initUploadFolder() {
+      let that = this;
+
+      document.getElementById('uploadFolder').addEventListener('change', function () {
+        if (!this.files.length) return;
+
+        let files = this.files;
+
+        for (let i = 0; i < files.length; i++) {
+
+          if (that.checkFileSize(files[i].size) && that.checkFileType(files[i].name)) {
+            that.setHeaders();
+
+            setTimeout(function () {
+              that.uploadFiles(new File([files[i]], that.getRandomFilename(files[i]), {type: files[i].type}));
+            }, 100);
+          }
+        }
+      }, false);
+    },
+    checkFileType(filename) {
+      return oneOf(filename.split('.')[1], this.config.format);
+    },
+    checkFileSize(size) {
+      return size > this.config.size;
+    },
+    swapArr(arr, start, end) {
+      arr[start] = arr.splice(end, 1, arr[start])[0];
+
+      return arr;
+    },
+    handleHelp() {
+      this.help.visible = true;
+    },
+    handleDropActive() {
+      this.isActive = !this.isActive;
+    },
+    handleDragStart(event, index) {
+      this.startIndex = index;
+    },
+    handleDrop(event, index) {
+      this.images = this.swapArr(this.images, this.startIndex, index);
+      event.preventDefault();
+    },
+    handleDragOver(event) {
+      event.preventDefault();
+    },
+    handlePaste(e) {
+      let files = Array.prototype.slice.call(e.clipboardData.files);
+
+      if (!files.length) return;
+
+      let that = this;
+      this.setHeaders();
+
+      files.forEach(file => {
+        setTimeout(function () {
+          that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+        }, 100);
+      });
+    },
+    formatText(val) {
+      if (!val) {
+        return 'Enter value';
+      }
+      return val;
+    },
+    formatUrl(url) {
+      if (url.charAt(url.length - 1) === '/') {
+        return url.substr(0, url.length - 1);
+      }
+
+      return url;
+    },
+    formatCallback(files) {
+      switch (this.type) {
+        default:
+        case 'object':
+          return files;
+        case 'array':
+          let temp = [];
+          for (let i = 0; i < files.length; i++) {
+            temp[i] = files[i].url;
+          }
+          return temp;
+        case 'string':
+          if (files.length > 0) {
+            return files[0].url
+          }
+
+          return '';
+      }
+    },
+    formatValue() {
+      let arr;
+
+      switch (Object.prototype.toString.call(this.currentValue)) {
+        case '[object String]':
+          if (this.currentValue) {
+            arr = [{
+              url: this.currentValue
+            }];
+          } else {
+            arr = [];
+          }
+          break;
+        case '[object Array]':
+          let type = Object.prototype.toString.call(this.currentValue[0]);
+          switch (type) {
+            case '[object String]':
+              arr = [];
+              for (let i = 0; i < this.currentValue.length; i++) {
+                arr[i] = {};
+                arr[i].url = this.currentValue[i];
+              }
+
+              break;
+            case '[object Object]':
+              arr = this.currentValue;
+              break;
+            case '[object Undefined]':
+              arr = [];
+              break;
+            default:
+              console.error('暂不支持数组和对象以外的类型', type);
+              arr = [];
+              break;
+          }
+          break;
+        case '[object Null]':
+          arr = [];
+          break;
+        default:
+          console.error('未知格式', Object.prototype.toString.call(this.currentValue));
+          break;
+      }
+
+      return arr;
+    },
+    formatIcon(item) {
+      return config.formatIcon(this.getSuffix(item));
+    },
+    formatImage(item) {
+      if (item.url) {
+        return item.url + this.config.style;
+      }
+
+      if (item.host) {
+        return this.formatUrl(item.host) + '/' + item.path + this.config.style;
+      }
+
+      return null;
+    },
+    getSuffix(item) {
+      if (item.url) {
+        return item.url.substring(item.url.lastIndexOf('.') + 1).toLowerCase();
+      }
+
+      if (item.path) {
+        return item.path.substring(item.path.lastIndexOf('.') + 1).toLowerCase();
+      }
+    },
+    isImage(item) {
+      return oneOf(this.getSuffix(item), this.suffixList);
+    },
+    handleChoose() {
+      if (this.disabled) {
+        return;
+      }
+
+      if (this.simple) {
+        this.$refs.upload.fileList = [];
+
+        document.getElementById('upload').click();
+      } else {
+        this.visible = true;
+
+        this.isSmartSort = Boolean(Number(localStorage.getItem('isSmartSort')));
+
+        this.uploadList = [];
+        this.getFiles();
+      }
+    },
+    handleSmartSortChange(val) {
+      localStorage.setItem('isSmartSort', val ? 1 : 0);
+    },
+    getFiles() {
+      this.clean();
+
+      if (!this.urls.index) {
+        return false;
+      }
+
+      if (this.simple) {
+        return false;
+      }
+
+      API.getFiles(this.urls.index, this.query).then(res => {
+        this.fileList = res.children.data;
+        this.query.total = res.children.total;
+        this.parentFolder = res.parent;
+
+        this.currentFolder = res.parent;
+
+        this.createFolder.form.pid = res.parent[this.config.key];
+
+        if (this.config.strict) {
+          this.checkPolicy();
+        }
+      });
+    },
+    handleOpenFolder(folder) {
+      clearTimeout(time);
+
+      this.query.page = 1;
+      this.query.pid = folder[this.config.key];
+
+      this.query.keyword = null;
+
+      this.currentFolder = folder;
+      this.getFiles();
+    },
+    handleSelectAll() {
+      for (let i = 0; i < this.fileList.length; i++) {
+        this.fileList[i]['checked'] = true;
+      }
+    },
+    handleSelect(index) {
+      let that = this;
+
+      clearTimeout(time);
+
+      time = setTimeout(function () {
+        that.fileList[index]['checked'] = !that.fileList[index]['checked'];
+        that.fileList[index]['order'] = ++that.order;
+        that.currentFile = that.fileList[index];
+      }, 300);
+    },
+    handleAdd() {
+      this.cloud.form.items.push({
+        name: null,
+        url: null,
+      });
+    },
+    handleRemove(index) {
+      this.cloud.form.items.splice(index, 1);
+    },
+    handleClean() {
+      switch (Object.prototype.toString.call(this.currentValue)) {
+        case '[object Array]':
+          let type = Object.prototype.toString.call(this.currentValue[0]);
+          switch (type) {
+            case '[object String]':
+            case '[object Object]':
+              this.currentValue.splice(0, this.currentValue.length);
+              break;
+            default:
+              this.currentValue = '';
+              break;
+          }
+          break;
+        default:
+          this.setCurrentValue(null);
+          this.$emit('input', null);
+          break;
+      }
+
+      event.preventDefault();
+    },
+    handleSlice(index) {
+      switch (Object.prototype.toString.call(this.currentValue)) {
+        case '[object Array]':
+          let type = Object.prototype.toString.call(this.currentValue[0]);
+          switch (type) {
+            case '[object String]':
+            case '[object Object]':
+              this.currentValue.splice(index, 1);
+              break;
+            default:
+              this.currentValue = '';
+              break;
+          }
+          break;
+        default:
+          this.setCurrentValue(null);
+          this.$emit('input', null);
+          break;
+      }
+
+      event.preventDefault();
+    },
+    setCurrentValue(value) {
+      if (value === this.currentValue) {
+        return;
+      }
+
+      this.currentValue = value;
+    },
+    handleAddFolder() {
+      this.$refs.createFolderForm.resetFields();
+
+      this.createFolder.visible = true;
+    },
+    clean() {
+      this.createFolder.visible = false;
+      this.rename.visible = false;
+      this.cloud.visible = false;
+      this.bookmark.visible = false;
+
+      this.createFolder.form.name = null;
+
+      this.currentFile = {
+        path: null,
+        name: null,
+        size: 0,
+        width: 0,
+        height: 0,
+        created_at: null,
+      };
+
+      this.cloud.form = {
+        pid: null,
+        items: [
+          {
+            name: null,
+            url: null,
+          },
+        ],
+      };
+    },
+    handleEditImage(item) {
+      let url;
+
+      if (item.url) {
+        url = item.url;
+      } else {
+        url = this.formatUrl(item.host) + '/' + item.path;
+      }
+
+      this.cropper.image = url
+
+      this.cropper.visible = true;
+    },
+    handleSetVisible(item, visible) {
+      let form = {
+        id: item[this.config.key],
+        visible: visible,
+      };
+
+      API.patchFileVisible(this.urls.visible, form).then(res => {
+        if (res.status === 200) {
+          this.$Notice.success({
+            title: '设置成功',
+          });
+
+          this.getFiles();
+        } else {
+          this.$Notice.error({
+            title: '设置失败',
+            desc: res.msg
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    handleRename(item) {
+      this.rename.visible = true;
+      this.rename.form.id = item.id;
+      this.rename.form.name = item.name;
+    },
+    handleCopyLink(item) {
+      let url;
+
+      if (item.url) {
+        url = item.url;
+      } else {
+        url = this.formatUrl(item.host) + '/' + item.path;
+      }
+
+      this.copy(url, '链接复制成功');
+    },
+    copy(val, msg) {
+      const input = document.createElement('input');
+      input.setAttribute('readonly', 'readonly');
+      input.setAttribute('value', val);
+      document.body.appendChild(input);
+      input.setSelectionRange(0, 9999);
+      input.select();
+
+      if (document.execCommand('copy')) {
+        this.$Notice.success({
+          title: msg,
+        });
+      }
+
+      document.body.removeChild(input);
+    },
+    getFilename(filename) {
+      if (filename) {
+        return filename.substring(0, filename.indexOf('?') === -1 ? filename.length : filename.indexOf('?')).substr(filename.lastIndexOf('/') + 1);
+      }
+
+      return null;
+    },
+    handleCopyMDLink(item) {
+      let url;
+
+      if (item.url) {
+        url = item.url;
+      } else {
+        url = this.formatUrl(item.host) + '/' + item.path;
+      }
+
+      let mdUrl = '![' + url.substring(0, url.indexOf('?') === -1 ? url.length : url.indexOf('?')).substr(url.lastIndexOf('/') + 1) + ']' + '(' + url + ')';
+
+      this.copy(mdUrl, 'MarkDown 链接复制成功');
+    },
+    handleDownload(item) {
+      let url;
+
+      if (item.url) {
+        url = item.url;
+      } else {
+        url = this.formatUrl(item.host) + '/' + item.path;
+      }
+
+      window.open(url);
+    },
+    handleDestroy(item) {
+      let form = {
+        ids: [item[this.config.key]],
+      };
+
+      API.delFiles(this.urls.delete, form).then(res => {
+        if (res.status === 200) {
+          this.$Notice.success({
+            title: '删除成功',
+            desc: ' '
+          });
+
+          this.getFiles();
+        } else {
+          this.$Notice.error({
+            title: '删除失败',
+            desc: res.msg,
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    handleSetDefault(row) {
+      let form = {
+        id: row.id,
+      };
+
+      API.setDefaultFolder(this.urls.default, form).then(res => {
+        if (res.status === 200) {
+          Notice.success({
+            title: '设置成功',
+            desc: ' '
+          });
+        } else {
+          Notice.error({
+            title: '设置失败',
+            desc: res.msg,
+          });
+        }
+      }).catch(err => {
+        console.error(err);
+      });
+    },
+    handlePreview() {
+      this.bookmark.visible = true;
+
+      this.clearBookmarkQuery();
+
+      this.getBookmarks();
+    },
+    getBookmarks() {
+      API.getBookmarks(this.urls.bookmark.index, this.bookmark.query).then(res => {
+        this.bookmark.data = res.data;
+        this.bookmark.query.total = res.total;
+      });
+    },
+    handleCreateBookmark(row) {
+      let form = {
+        id: row.id,
+      };
+
+      API.postBookmark(this.urls.bookmark.create, form).then(res => {
+        if (res.status === 200) {
+          Notice.success({
+            title: '添加成功',
+            desc: ' '
+          });
+        } else {
+          Notice.error({
+            title: '添加失败',
+            desc: res.msg,
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    handleGo(row) {
+      this.query.pid = row.id;
+      this.query.page = 1;
+
+      this.getFiles();
+    },
+    handleDeleteBookmark(row) {
+      let form = {
+        id: row.id,
+      };
+
+      API.delBookmark(this.urls.bookmark.delete, form).then(res => {
+        if (res.status === 200) {
+          Notice.success({
+            title: '删除成功',
+            desc: ' '
+          });
+
+          this.getBookmarks();
+        } else {
+          Notice.error({
+            title: '删除失败',
+            desc: res.msg,
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    clearBookmarkQuery() {
+      this.bookmark.query = {
+        page: 1,
+        per_page: 10,
+        total: 0,
+        keyword: null,
+      };
+    },
+    handlePageChange(page) {
+      this.bookmark.query.page = page;
+
+      this.getBookmarks();
+    },
+    handlePageSizeChange(pageSize) {
+      this.bookmark.query.page = 1;
+      this.bookmark.query.per_page = pageSize;
+
+      this.getBookmarks();
+    },
+    handleReview(val) {
+      this.imageReview.visible = true;
+      this.imageReview.currentImage = val;
+
+      event.preventDefault()
+    },
+    handleUploadFolder() {
+      document.getElementById('uploadFolder').click();
+    },
+    handleFormatError() {
+      let error = '请上传以下格式文件 ' + this.config.format.join('|');
+      this.error = error;
+
+      Notice.warning({
+        title: '文件格式错误',
+        desc: error,
+      });
+    },
+    handleExceededSize() {
+      let error = '请上传 ' + Math.ceil(this.config.size / 1024) + 'M 内文件';
+      this.error = error;
+
+      Notice.warning({
+        title: '文件大小错误',
+        desc: error,
+      });
+    },
+    handleClose() {
+      this.cropper.visible = false;
+    },
+    handleCroped(blob) {
+      let that = this;
+      this.setHeaders();
+
+      let file = new File([blob], Math.random().toString(36).substr(2) + new Date().getTime() + '.png', {type: 'image/png'});
+
+      setTimeout(function () {
+        that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+      }, 1000);
+    },
+    checkFileWidthAndHeight(file) {
+      let that = this;
+
+      let fileReader = new FileReader();
+
+      fileReader.onload = e => {
+        let src = e.target.result;
+
+        const image = new Image();
+        image.onload = function () {
+          if (typeof that.width === 'number') {
+            if (that.width && this.width !== that.width) {
+              let error = '请上传宽为 ' + that.width + ' 的图片';
+              that.error = error;
+
+              that.$Notice.warning({
+                title: error,
+              });
+
+              return false;
+            }
+          } else {
+            if (!!(that.width[0] && that.width[1])) {
+              if (!((that.width[0] <= this.width) && (that.width[1] >= this.width))) {
+                let error = '请上传宽度范围为 ' + that.width[0] + '-' + that.width[1] + ' 的图片';
+                that.error = error;
+
+                that.$Notice.warning({
+                  title: error,
+                });
+
+                return false;
+              }
+            } else {
+              let error = '请修改配置 width,并输入正确的数字或数组';
+
+              that.error = error;
+
+              that.$Notice.warning({
+                title: error,
+              });
+
+              return false;
+            }
+          }
+
+          if (typeof that.height === 'number') {
+            if (that.height && this.height !== that.height) {
+              let error = '请上传高为 ' + that.height + ' 的图片';
+              that.error = error;
+
+              that.$Notice.warning({
+                title: error,
+              });
+
+              return false;
+            }
+          } else {
+            if (!!(that.height[0] && that.height[1])) {
+              if (!((that.height[0] <= this.height) && (that.height[1] >= this.height))) {
+                let error = '请上传高度范围为 ' + that.height[0] + '-' + that.height[1] + ' 的图片';
+                that.error = error;
+
+                that.$Notice.warning({
+                  title: error,
+                });
+
+                return false;
+              }
+            } else {
+              let error = '请修改配置 height,并输入正确的数字或数组';
+              that.error = error;
+
+              that.$Notice.warning({
+                title: error,
+              });
+
+              return false;
+            }
+          }
+
+          return true;
+        };
+
+        image.src = src;
+      };
+
+      fileReader.readAsDataURL(file);
+    },
+    setHeaders() {
+      let key;
+
+      if (this.simple) {
+        key = this.config.gateway + '_' + this.simple + '_policy';
+
+        let policy = JSON.parse(localStorage.getItem(key));
+
+        this.headers = policy.value;
+      } else {
+        if (this.config.strict) {
+          key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+
+          let policy = JSON.parse(localStorage.getItem(key));
+
+          this.headers = policy.value;
+        } else {
+          key = this.config.gateway + '_policy';
+
+          let policy = JSON.parse(localStorage.getItem(key));
+
+          this.headers = policy.value;
+        }
+      }
+    },
+    handleBeforeUpload(file) {
+      let that = this;
+
+      if (file.type.indexOf('image') !== 1 && this.config.check) {
+        this.checkFileWidthAndHeight(file);
+      }
+
+      let key;
+
+      if (this.simple) {
+        key = this.config.gateway + '_' + this.simple + '_policy';
+
+        let policy = JSON.parse(localStorage.getItem(key));
+
+        this.headers = policy.value;
+      } else {
+        if (this.config.strict) {
+          key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+
+          let policy = JSON.parse(localStorage.getItem(key));
+
+          this.headers = policy.value;
+        } else {
+          key = this.config.gateway + '_policy';
+
+          let policy = JSON.parse(localStorage.getItem(key));
+
+          this.headers = policy.value;
+        }
+      }
+
+      if (this.simple) {
+        setTimeout(function () {
+          that.uploadFiles(new File([file], that.getRandomFilename(file), {type: file.type}));
+        }, 1000);
+
+        return false;
+      }
+
+      if (this.config.random) {
+        this.uploadFiles(new File([file], this.getRandomFilename(file), {type: file.type}));
+
+        return false;
+      } else {
+        this.checkFile(file);
+
+        return false;
+      }
+    },
+    handleUpload() {
+      this.cloud.visible = true;
+      this.cloud.form.pid = this.createFolder.form.pid;
+    },
+    handleSubmit() {
+      this.$refs.cloudForm.validate((valid) => {
+        if (valid) {
+          API.getFilesByServer(this.urls.remote, this.cloud.form).then(res => {
+            if (res.status === 200) {
+              Notice.success({
+                title: '文件上传成功',
+                desc: '',
+              });
+
+              this.getFiles();
+            } else {
+              Notice.error({
+                title: '文件上传失败',
+                desc: res.msg,
+              });
+            }
+          }).catch(error => {
+            console.error(error);
+          });
+        } else {
+          Notice.warning({
+            title: '表单参数有误',
+            desc: '请检查'
+          });
+        }
+      });
+    },
+    getRandomFilename(file) {
+      return Math.random().toString(36).substr(2) + new Date().getTime() + '.' + file.name.split('.')[1];
+    },
+    handleCancel() {
+      this.objectList = [];
+    },
+    handleView() {
+      window.open(this.imageReview.currentImage.url);
+    },
+    handleChangeImage(flag) {
+      let index = this.images.findIndex((o) => {
+        return o.url === this.imageReview.currentImage.url
+      });
+
+      if (flag) {
+        index = !index ? this.images.length : index;
+
+        this.imageReview.currentImage = this.images[index - 1];
+      } else {
+        index = (index + 1) === this.images.length ? -1 : index;
+
+        this.imageReview.currentImage = this.images[index + 1];
+      }
+    },
+    checkFile(file) {
+      let reg = /^[\u4E00-\u9FA5A-Za-z0-9_-]+$/;
+
+      if (!reg.test(file.name.replace(/\s+/g, '').replace('.', ''))) {
+        Notice.warning({
+          title: '文件名包含特殊字符',
+          desc: '请修改' + file.name + '文件名',
+        });
+
+        Notice.info({
+          title: '文件名仅支持以下字符',
+          desc: '中英文,数字,下划线减号空格【_，-， 】',
+          duration: 0,
+        });
+
+        return false;
+      }
+
+      let form = {
+        path: this.parentFolder.path + '/' + file.name,
+      };
+
+      if (this.urls.check) {
+        API.checkFile(this.urls.check, form).then(res => {
+          if (res.status == 200) {
+            this.uploadFiles(file);
+          } else {
+            Notice.warning({
+              title: res.msg,
+              desc: '请修改【' + file.name + '】文件名',
+            });
+          }
+        });
+      } else {
+        if (this.urls.alias) {
+          var url = this.formatUrl(this.urls.alias) + '/' + form.path;
+        } else {
+          var url = this.formatUrl(this.urls.upload) + '/' + form.path;
+        }
+
+        API.headFile(url).then(res => {
+          Notice.warning({
+            title: '文件已存在',
+            desc: '请修改【' + file.name + '】文件名'
+          });
+        }).catch(error => {
+          this.uploadFiles(file);
+        });
+      }
+    },
+    uploadFiles(file) {
+      if (this.simple) {
+        this.headers.key = this.formatUrl(this.simple) + '/' + file.name;
+      } else {
+        this.headers.key = this.parentFolder.path + '/' + file.name;
+      }
+
+      this.$refs.upload.post(file);
+    },
+    checkPolicy() {
+      let key;
+
+      if (this.config.strict) {
+        key = this.config.gateway + '_' + this.currentFolder.path + '_policy';
+      } else {
+        key = this.config.gateway + '_policy';
+      }
+
+      if (localStorage.getItem(key)) {
+        let policy = JSON.parse(localStorage.getItem(key));
+
+        if (new Date() > new Date(policy.expire_at)) {
+          this.getPolicy();
+        }
+      } else {
+        this.getPolicy();
+      }
+    },
+    getPolicy() {
+      if (!this.urls.policy) {
+        this.$Notice.info({
+          title: '请填写获取策略地址',
+        });
+
+        return false;
+      }
+
+      let form = {
+        path: this.currentFolder.path,
+      };
+
+      if (this.simple) {
+        form.path = this.simple;
+      }
+
+      API.getPolicy(this.urls.policy, form).then(res => {
+        let policy = {};
+        policy.value = res.data;
+        policy.expire_at = new Date(new Date().getTime() + res.expire * 1000);
+
+        if (this.simple) {
+          localStorage.setItem(this.config.gateway + '_' + this.simple + '_policy', JSON.stringify(policy));
+        } else {
+          if (this.config.strict) {
+            localStorage.setItem(this.config.gateway + '_' + this.currentFolder.path + '_policy', JSON.stringify(policy));
+          } else {
+            localStorage.setItem(this.config.gateway + '_policy', JSON.stringify(policy));
+          }
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    simpleInsertImages(fileList) {
+      let that = this;
+      let files = [];
+
+      fileList.forEach(function (current) {
+        let obj = {};
+
+        if (that.urls.alias) {
+          obj.url = that.formatUrl(that.urls.alias) + '/' + that.formatUrl(that.simple) + '/' + current.name;
+        } else {
+          obj.url = that.formatUrl(that.urls.upload) + '/' + that.formatUrl(that.simple) + '/' + current.name;
+        }
+
+        files.push(obj);
+      });
+
+      let res = this.formatReturn(files);
+
+      this.currentValue = res;
+      this.$emit('input', res);
+      this.$emit('callback', res);
+      this.dispatch('FormItem', 'on-form-change', res);
+    },
+    handleSuccess(res, file, fileList) {
+      if (this.simple) {
+        this.simpleInsertImages(fileList);
+
+        return false;
+      }
+
+      this.cropper.visible = false;
+
+      var url;
+
+      if (this.urls.alias) {
+        url = this.formatUrl(this.urls.alias) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
+      } else {
+        url = this.formatUrl(this.urls.upload) + '/' + this.formatUrl(this.parentFolder.path) + '/' + file.name;
+      }
+
+      this.uploadList.push({
+        type: 'file',
+        checked: true,
+        url: url,
+      });
+
+      if (!!this.urls.return) {
+        let form = {
+          filename: this.parentFolder.path + '/' + file.name,
+          size: file.size,
+        };
+
+        API.postFile(this.urls.return, form).then(res => {
+          if (res.status === 200) {
+            this.$Notice.success({
+              title: '回调成功',
+              desc: 'client'
+            });
+          } else {
+            this.$Notice.error({
+              title: '回调失败',
+              desc: 'client'
+            });
+          }
+
+          this.getFiles();
+        }).catch(error => {
+          console.error(error);
+        });
+      } else {
+        if (res.status == 200) {
+          Notice.success({
+            title: '上传成功',
+            desc: 'server'
+          });
+
+          this.getFiles();
+        } else {
+          Notice.error({
+            title: '回调失败',
+            desc: '请联系管理员'
+          });
+        }
+      }
+    },
+    handleError(err) {
+      console.error(err);
+
+      Notice.error({
+        title: '上传失败',
+        desc: '请联系管理员'
+      });
+    },
+    orderBy(field) {
+      return function (a, b) {
+        return a[field] - b[field];
+      }
+    },
+    insertImages() {
+      let that = this;
+      //过滤目录
+      let items = this.fileList.filter(this.filterFileChecked).sort(this.orderBy('order'));
+
+      let files = [];
+
+      this.uploadList.forEach(function (current) {
+        let obj = {};
+
+        if (current.url) {
+          obj.url = current.url;
+        } else {
+          obj.url = that.formatUrl(current.host) + '/' + current.path;
+        }
+
+        files.push(obj);
+      });
+
+      items.forEach(function (current) {
+        let obj = {};
+
+        if (current.url) {
+          obj.url = current.url;
+        } else {
+          obj.url = that.formatUrl(current.host) + '/' + current.path;
+        }
+
+        files.push(obj);
+      });
+
+      if (this.isSmartSort) {
+        files = sortBy(files, [function (o) {
+          return o.url;
+        }]);
+      }
+
+      if (files.length > this.max) {
+        Notice.info({
+          title: '提示',
+          desc: '文件最多选择' + this.max + '张,多选部分将被舍弃',
+        });
+
+        files = files.slice(0, this.max);
+      }
+
+      let res = this.formatReturn(files);
+
+      this.currentValue = res;
+      this.$emit('input', res);
+      this.$emit('callback', res);
+      this.dispatch('FormItem', 'on-form-change', res);
+
+      this.order = 0;
+      this.visible = false;
+      this.handleReset();
+    },
+    pageChange(val) {
+      this.query.page = val;
+      this.getFiles();
+    },
+    pageSizeChange(val) {
+      this.query.page = 1;
+      this.query.per_page = val;
+      this.getFiles();
+    },
+    handleBack() {
+      this.query.pid = this.parentFolder.pid;
+      this.query.page = 1;
+      this.getFiles();
+    },
+    handleCopy() {
+      this.actionType = 'copy';
+
+      this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
+    },
+    flatMapKey(item) {
+      return item[this.config.key];
+    },
+    filterChecked(item) {
+      return item.checked;
+    },
+    filterFileChecked(item) {
+      return item.checked && item.type === 'file';
+    },
+    filterUrl(item) {
+      return item.url;
+    },
+    handleCut() {
+      this.actionType = 'cut';
+
+      this.objectList = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
+    },
+    handleStick() {
+      let form = {
+        action: this.actionType,
+        ids: this.objectList,
+        folder_id: this.currentFolder[this.config.key],
+      };
+
+      API.postFiles(this.urls.paste, form).then(res => {
+        if (res.status === 200) {
+          this.$Notice.success({
+            title: '操作成功',
+            desc: ' ',
+          });
+
+          this.objectList = [];
+
+          this.getFiles();
+        } else {
+          this.$Notice.error({
+            title: '操作失败',
+            desc: res.msg,
+          });
+        }
+      });
+    },
+    handleSearch() {
+      this.query.pid = null;
+      this.query.page = 1;
+
+      this.getFiles();
+    },
+    handleHome() {
+      this.query.pid = null;
+      this.query.name = 'root';
+      this.query.page = 1;
+
+      this.getFiles();
+    },
+    handleRefresh() {
+      this.getFiles();
+      Notice.success({
+        title: '刷新成功',
+        desc: ' '
+      });
+    },
+    handleDelete() {
+      let res = this.fileList.filter(this.filterChecked).flatMap(this.flatMapKey);
+
+      let form = {
+        ids: res,
+      };
+
+      API.delFiles(this.urls.delete, form).then(res => {
+        if (res.status === 200) {
+          Notice.success({
+            title: '删除成功',
+            desc: ' '
+          });
+          this.getFiles();
+        } else {
+          Notice.error({
+            title: '删除失败',
+            desc: res.msg,
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+    handleReset() {
+      this.fileList.map(function (o) {
+        o.checked = false;
+        o.order = 0;
+      });
+    },
+    handleRenameSubmit() {
+      this.rename.loading = true;
+
+      this.$refs.renameForm.validate((valid) => {
+        if (valid) {
+          API.putFileName(this.urls.rename, this.rename.form).then(res => {
+            if (res.status === 200) {
+              this.$Notice.success({
+                title: '操作成功',
+                desc: ' ',
+              });
+
+              this.getFiles();
+            } else {
+              this.$Notice.error({
+                title: '操作失败',
+                desc: res.msg,
+              });
+            }
+
+            this.rename.loading = false;
+          }).catch(error => {
+            this.rename.loading = false;
+            console.error(error);
+          });
+        } else {
+          this.$Notice.warning({
+            title: '表单参数有误',
+            desc: '请检查',
+          });
+        }
+      });
+    },
+    handleSubmitFolder() {
+      this.createFolder.loading = true;
+
+      this.$refs.createFolderForm.validate((valid) => {
+        if (valid) {
+          API.postFolder(this.urls.create, this.createFolder.form).then(res => {
+            if (res.status === 200) {
+              Notice.success({
+                title: '目录创建成功',
+                desc: ' '
+              });
+
+              this.getFiles();
+            } else {
+              Notice.error({
+                title: '目录创建失败',
+                desc: res.msg,
+              });
+            }
+
+            this.createFolder.loading = false;
+          }).catch(error => {
+            this.createFolder.loading = false;
+            console.error(error);
+          });
+        } else {
+          this.createFolder.loading = false;
+
+          Notice.warning({
+            title: '表单输入有误',
+            desc: '请检查'
+          });
+        }
+      });
+    }
   }
+}
 </script>
 
 <style scoped>
-  @import url(//at.alicdn.com/t/font_1433693_x9qxkikre1j.css);
+@import url(//at.alicdn.com/t/font_1433693_x9qxkikre1j.css);
 
-  li {
-    list-style: none
-  }
+li {
+  list-style: none
+}
 
-  .xayah-upload-list {
-    display: inline-block;
-    width: 60px;
-    height: 60px;
-    text-align: center;
-    line-height: 60px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    background: #fff;
-    position: relative;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
-    margin-right: 4px;
-  }
+.xayah-upload-list {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  line-height: 60px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff;
+  position: relative;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
+  margin-right: 4px;
+}
 
-  .xayah-object-list {
-    display: inline-block;
-    width: 100px;
-    height: 100px;
-    text-align: center;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    background: #fff;
-    position: relative;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
-    margin-right: 4px;
-  }
+.xayah-object-list {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff;
+  position: relative;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
+  margin-right: 4px;
+}
 
-  .xayah-upload-list img {
-    width: 100%;
-    height: 100%;
-  }
+.xayah-upload-list img {
+  width: 100%;
+  height: 100%;
+}
 
-  .xayah-object-list img {
-    width: 100%;
-    height: 98px;
-  }
+.xayah-object-list img {
+  width: 100%;
+  height: 98px;
+}
 
-  .xayah-upload-list-cover {
-    display: none;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, .6);
-  }
+.xayah-upload-list-cover {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, .6);
+}
 
-  .xayah-upload-list:hover {
-    border: 1px dashed #2d8cf0;
-  }
+.xayah-upload-list:hover {
+  border: 1px dashed #2d8cf0;
+}
 
-  .xayah-upload-list:hover .xayah-upload-list-cover {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+.xayah-upload-list:hover .xayah-upload-list-cover {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
 
-  }
+}
 
-  .xayah-upload-list-cover i {
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    margin: 0 2px;
-    width: 25px;
-  }
+.xayah-upload-list-cover i {
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  margin: 0 2px;
+  width: 25px;
+}
 
-  .xayah-drag-active {
-    display: none !important;
-  }
+.xayah-drag-active {
+  display: none !important;
+}
 
-  .xayah-help-icon {
-    font-size: 20px;
-    color: #999;
-    -webkit-transition: color .2s ease;
-    transition: color .2s ease;
-    position: relative;
-    top: 1px;
-  }
+.xayah-help-icon {
+  font-size: 20px;
+  color: #999;
+  -webkit-transition: color .2s ease;
+  transition: color .2s ease;
+  position: relative;
+  top: 1px;
+}
 
-  .xayah-display-inline {
-    display: inline;
-  }
+.xayah-display-inline {
+  display: inline;
+}
 
-  .xayah-display-none {
-    display: none;
-  }
+.xayah-display-none {
+  display: none;
+}
 
-  .xayah-create-folder {
-    height: 100px;
-    width: 100px;
-    line-height: 100px;
-  }
+.xayah-create-folder {
+  height: 100px;
+  width: 100px;
+  line-height: 100px;
+}
 
-  .xayah-file-list {
-    overflow: visible;
-    vertical-align: top;
-    margin-bottom: 30px;
-  }
+.xayah-file-list {
+  overflow: visible;
+  vertical-align: top;
+  margin-bottom: 30px;
+}
 
 
 </style>
