@@ -154,11 +154,11 @@ export default {
         rename: '',   //重命名文件
         remote: '',
         default: '',
-        bookmark: {
-          index: 'http://www.alaska.local/api/file/bookmark/index',
-          create: '',
-          delete: '',
-        },
+      },
+      bookmark: {
+        index: 'http://www.alaska.local/api/file/bookmark/index',
+        create: '',
+        delete: '',
       },
       config: {
         format: [

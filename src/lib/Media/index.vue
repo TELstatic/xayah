@@ -71,7 +71,7 @@
 
             <Button icon="ios-star-outline" type="info"
                     style="display: none"
-                    @click="handlePreview" v-if="bookmark.index">
+                    @click="handlePreview">
               书签
             </Button>
 
@@ -399,14 +399,14 @@
 
     <Modal
       title="书签列表"
-      v-model="bookmark.visible"
+      v-model="bookmarks.visible"
       width="80%"
       :transfer="false"
       :footerHide="true">
       <div style="text-align: center;width: 100%">
-        <Table :data="bookmark.data" :columns="bookmark.columns"></Table>
+        <Table :data="bookmarks.data" :columns="bookmarks.columns"></Table>
 
-        <Page :total="bookmark.query.total"
+        <Page :total="bookmarks.query.total"
               show-total
               show-sizer
               show-elevator
@@ -695,7 +695,7 @@ export default {
   },
   data() {
     return {
-      bookmark: {
+      bookmarks: {
         visible: false,
         query: {
           page: 1,
@@ -1261,7 +1261,7 @@ export default {
       this.createFolder.visible = false;
       this.rename.visible = false;
       this.cloud.visible = false;
-      this.bookmark.visible = false;
+      this.bookmarks.visible = false;
 
       this.createFolder.form.name = null;
 
@@ -1428,16 +1428,16 @@ export default {
       });
     },
     handlePreview() {
-      this.bookmark.visible = true;
+      this.bookmarks.visible = true;
 
       this.clearBookmarkQuery();
 
       this.getBookmarks();
     },
     getBookmarks() {
-      API.getBookmarks(this.bookmark.index, this.bookmark.query).then(res => {
-        this.bookmark.data = res.data;
-        this.bookmark.query.total = res.total;
+      API.getBookmarks(this.bookmark.index, this.bookmarks.query).then(res => {
+        this.bookmarks.data = res.data;
+        this.bookmarks.query.total = res.total;
       });
     },
     handleCreateBookmark(row) {
@@ -1491,7 +1491,7 @@ export default {
       });
     },
     clearBookmarkQuery() {
-      this.bookmark.query = {
+      this.bookmarks.query = {
         page: 1,
         per_page: 10,
         total: 0,
@@ -1499,13 +1499,13 @@ export default {
       };
     },
     handlePageChange(page) {
-      this.bookmark.query.page = page;
+      this.bookmarks.query.page = page;
 
       this.getBookmarks();
     },
     handlePageSizeChange(pageSize) {
-      this.bookmark.query.page = 1;
-      this.bookmark.query.per_page = pageSize;
+      this.bookmarks.query.page = 1;
+      this.bookmarks.query.per_page = pageSize;
 
       this.getBookmarks();
     },
@@ -2024,6 +2024,8 @@ export default {
 
         files = files.slice(0, this.max);
       }
+
+      files = _.uniqWith(files, _.isEqual);
 
       let res = this.formatReturn(files);
 
