@@ -214,10 +214,7 @@
                                     <DropdownMenu slot="list" v-if="urls.rename || urls.delete">
                                         <DropdownItem v-if="urls.default"
                                                       @click.prevent.native="handleSetDefault(item)">设置默认目录</DropdownItem>
-                                        <DropdownItem v-if="bookmark.create && !item.marked_at"
-                                                      @click.prevent.native="handleCreateBookmark(item)">收藏</DropdownItem>
-                                        <DropdownItem v-if="bookmark.delete && item.marked_at"
-                                                      @click.prevent.native="handleDeleteBookmark(item)">取消收藏</DropdownItem>
+
                                         <DropdownItem v-if="urls.rename"
                                                       @click.prevent.native="handleRename(item)">重命名</DropdownItem>
                                         <DropdownItem @click.prevent.native="handleDestroy(item)"
